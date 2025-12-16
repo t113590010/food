@@ -1,0 +1,772 @@
+<!doctype html>
+<html lang="zh-Hant">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>LunchAI｜午餐決策與訂位</title>
+    <style>
+        :root {
+            --bg: #0b1020;
+            --card: #121a33;
+            --muted: #9aa7c7;
+            --text: #e8eeff;
+            --line: rgba(255, 255, 255, .08);
+            --btn: #2f6bff;
+            --btn2: #233155;
+            --good: #26d07c;
+            --warn: #ffcc00;
+            --bad: #ff4d4d
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        body {
+            margin: 0;
+            font-family: system-ui, -apple-system, "Segoe UI", "Noto Sans TC", "Microsoft JhengHei", sans-serif;
+            background: radial-gradient(1000px 600px at 20% 0%, rgba(47, 107, 255, .35), transparent 60%), radial-gradient(900px 600px at 80% 10%, rgba(38, 208, 124, .22), transparent 60%), var(--bg);
+            color: var(--text)
+        }
+
+        a {
+            color: inherit
+        }
+
+        .wrap {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px
+        }
+
+        .top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 18px;
+            border: 1px solid var(--line);
+            background: rgba(18, 26, 51, .7);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            position: sticky;
+            top: 12px;
+            z-index: 10
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px
+        }
+
+        .logo {
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #2f6bff, #26d07c);
+            box-shadow: 0 10px 30px rgba(47, 107, 255, .25)
+        }
+
+        .brand h1 {
+            font-size: 16px;
+            margin: 0;
+            letter-spacing: .4px
+        }
+
+        .brand p {
+            margin: 0;
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .nav {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap
+        }
+
+        .pill {
+            padding: 8px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: rgba(0, 0, 0, .15);
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1.15fr .85fr;
+            gap: 16px;
+            margin-top: 16px
+        }
+
+        @media (max-width:960px) {
+            .grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .card {
+            border: 1px solid var(--line);
+            background: rgba(18, 26, 51, .65);
+            border-radius: 18px;
+            overflow: hidden
+        }
+
+        .card .hd {
+            padding: 16px 18px;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        .card .hd h2 {
+            margin: 0;
+            font-size: 14px
+        }
+
+        .card .hd span {
+            font-size: 12px;
+            color: var(--muted)
+        }
+
+        .card .bd {
+            padding: 16px 18px
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px
+        }
+
+        @media (max-width:720px) {
+            .row {
+                grid-template-columns: 1fr
+            }
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: var(--muted);
+            margin-bottom: 6px
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--line);
+            background: rgba(0, 0, 0, .25);
+            color: var(--text);
+            outline: none
+        }
+
+        textarea {
+            min-height: 44px;
+            resize: vertical
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 12px
+        }
+
+        button {
+            border: 0;
+            border-radius: 12px;
+            padding: 10px 12px;
+            font-weight: 600;
+            cursor: pointer;
+            color: var(--text);
+            background: var(--btn)
+        }
+
+        button.secondary {
+            background: var(--btn2);
+            border: 1px solid var(--line);
+            font-weight: 600
+        }
+
+        button.ghost {
+            background: transparent;
+            border: 1px solid var(--line);
+            color: var(--muted)
+        }
+
+        button:disabled {
+            opacity: .55;
+            cursor: not-allowed
+        }
+
+        .hint {
+            margin-top: 10px;
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.6
+        }
+
+        .list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px
+        }
+
+        .item {
+            border: 1px solid var(--line);
+            background: rgba(0, 0, 0, .18);
+            border-radius: 14px;
+            padding: 12px
+        }
+
+        .itemTop {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px
+        }
+
+        .title {
+            font-weight: 800
+        }
+
+        .meta {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px
+        }
+
+        .tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 10px
+        }
+
+        .tag {
+            font-size: 11px;
+            padding: 5px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            color: var(--muted)
+        }
+
+        .tag.good {
+            border-color: rgba(38, 208, 124, .35);
+            color: rgba(38, 208, 124, .95)
+        }
+
+        .tag.warn {
+            border-color: rgba(255, 204, 0, .35);
+            color: rgba(255, 204, 0, .95)
+        }
+
+        .tag.bad {
+            border-color: rgba(255, 77, 77, .35);
+            color: rgba(255, 77, 77, .95)
+        }
+
+        .itemBtns {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px
+        }
+
+        .itemBtns button {
+            padding: 9px 10px;
+            border-radius: 12px
+        }
+
+        .split {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px
+        }
+
+        .kv {
+            display: grid;
+            grid-template-columns: 130px 1fr;
+            gap: 10px;
+            font-size: 13px
+        }
+
+        .kv div {
+            padding: 10px 12px;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: rgba(0, 0, 0, .18)
+        }
+
+        .kv .k {
+            color: var(--muted)
+        }
+
+        .notice {
+            padding: 12px 14px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 204, 0, .25);
+            background: rgba(255, 204, 0, .08);
+            color: rgba(255, 204, 0, .95);
+            font-size: 12px;
+            line-height: 1.6
+        }
+
+        .footTime {
+            margin: 18px auto 0 auto;
+            max-width: 1100px;
+            padding: 0 24px
+        }
+
+        .time {
+            font-family: "Comic Sans MS", cursive;
+            font-size: 14px;
+            color: rgba(232, 238, 255, .85)
+        }
+    </style>
+</head>
+
+<body>
+    <div class="wrap">
+        <div class="top">
+            <div class="brand">
+                <div class="logo"></div>
+                <div>
+                    <h1>LunchAI</h1>
+                    <p>AI 午餐決策｜訂位｜路線（Demo）</p>
+                </div>
+            </div>
+            <div class="nav">
+                <div class="pill">三方案：穩妥 / 嘗鮮 / 最快</div>
+                <div class="pill">無後端｜假資料</div>
+                <div class="pill" id="loginPill">未登入</div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <section class="card">
+                <div class="hd">
+                    <div>
+                        <h2>輸入需求</h2>
+                        <span>填少量資訊即可</span>
+                    </div>
+                    <span id="statusText">等待輸入</span>
+                </div>
+                <div class="bd">
+                    <div class="row">
+                        <div>
+                            <label>用餐地點（簡述）</label>
+                            <input id="place" placeholder="例：逢甲大學附近 / 公司附近" />
+                        </div>
+                        <div>
+                            <label>預算</label>
+                            <select id="budget">
+                                <option value="80-120">$80–120</option>
+                                <option value="120-200" selected>$120–200</option>
+                                <option value="200-350">$200–350</option>
+                                <option value="350+">$350+</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>距離上限</label>
+                            <select id="distance">
+                                <option value="300">300m</option>
+                                <option value="600" selected>600m</option>
+                                <option value="1200">1.2km</option>
+                                <option value="2500">2.5km</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>飲食偏好</label>
+                            <select id="diet">
+                                <option value="any" selected>不限</option>
+                                <option value="veg">素食優先</option>
+                                <option value="no_beef">不吃牛</option>
+                                <option value="no_spicy">不吃辣</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>今天想吃什麼（可空）</label>
+                            <input id="crave" placeholder="例：湯麵 / 便當 / 清爽 / 想吃肉" />
+                        </div>
+                        <div>
+                            <label>用餐時間</label>
+                            <select id="timeSlot">
+                                <option value="now" selected>現在</option>
+                                <option value="30">30 分鐘後</option>
+                                <option value="60">1 小時後</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="actions">
+                        <button id="btnLogin" class="secondary">登入（假）</button>
+                        <button id="btnDecide">幫我決定</button>
+                        <button id="btnReset" class="ghost">重置</button>
+                    </div>
+
+                    <div class="hint">
+                        這是 Demo：不會真的訂位。目標是呈現「AI 決策 → 訂位 → 路線 → 回饋」的流程。
+                    </div>
+                </div>
+            </section>
+
+            <aside class="split">
+                <section class="card">
+                    <div class="hd">
+                        <div>
+                            <h2>推薦結果</h2>
+                            <span>會生成 3 個方案</span>
+                        </div>
+                        <span id="resultBadge">未產生</span>
+                    </div>
+                    <div class="bd">
+                        <div class="list" id="resultList"></div>
+                        <div class="notice" style="margin-top:12px">
+                            圖上的中文字不要交給圖像 AI 產生；UI 文案請用 PPT/Canva/HTML 文字層來打，才不會亂碼。
+                        </div>
+                    </div>
+                </section>
+
+                <section class="card">
+                    <div class="hd">
+                        <div>
+                            <h2>訂位與路線（模擬）</h2>
+                            <span>選一個推薦後才會出現</span>
+                        </div>
+                        <span id="bookState">尚未選擇</span>
+                    </div>
+                    <div class="bd">
+                        <div class="kv">
+                            <div class="k">已選餐廳</div>
+                            <div id="selName">—</div>
+                            <div class="k">預估距離</div>
+                            <div id="selDist">—</div>
+                            <div class="k">價位</div>
+                            <div id="selPrice">—</div>
+                            <div class="k">訂位時段</div>
+                            <div id="selSlot">—</div>
+                        </div>
+
+                        <div class="actions" style="margin-top:12px">
+                            <button id="btnBook" class="secondary" disabled>一鍵訂位（假）</button>
+                            <button id="btnRoute" class="secondary" disabled>規劃路線（假）</button>
+                        </div>
+
+                        <div class="hint" style="margin-top:10px">
+                            回饋會影響下次「喜好」權重（Demo 內部模擬）。
+                        </div>
+
+                        <div class="actions">
+                            <button id="btnLike" disabled>喜歡</button>
+                            <button id="btnOk" class="secondary" disabled>普通</button>
+                            <button id="btnNope" class="ghost" disabled>不喜歡</button>
+                        </div>
+                    </div>
+                </section>
+            </aside>
+        </div>
+    </div>
+
+    <div class="footTime">
+        <div class="time" id="clock"></div>
+    </div>
+
+    <script>
+        const $ = (id) => document.getElementById(id)
+
+        const state = {
+            loggedIn: false,
+            lastResults: [],
+            selected: null,
+            prefs: {
+                likeTags: {},
+                blockNames: {}
+            }
+        }
+
+        const sampleDB = [
+            { name: "清爽便當坊", type: ["便當", "清爽"], veg: true, spicy: false, price: "$120–160", baseDist: 420, waitRisk: "低" },
+            { name: "濃湯烏龍麵", type: ["麵", "湯"], veg: false, spicy: false, price: "$150–220", baseDist: 560, waitRisk: "中" },
+            { name: "香料咖哩屋", type: ["咖哩", "肉"], veg: false, spicy: true, price: "$160–260", baseDist: 780, waitRisk: "中" },
+            { name: "素食小館", type: ["素食", "家常"], veg: true, spicy: false, price: "$110–180", baseDist: 650, waitRisk: "低" },
+            { name: "日式丼飯", type: ["丼飯", "肉"], veg: false, spicy: false, price: "$180–320", baseDist: 900, waitRisk: "中" },
+            { name: "快取雞肉飯", type: ["最快", "飯"], veg: false, spicy: false, price: "$80–120", baseDist: 260, waitRisk: "低" },
+            { name: "韓式拌飯", type: ["拌飯", "辣"], veg: false, spicy: true, price: "$150–240", baseDist: 520, waitRisk: "高" }
+        ]
+
+        function nowTimeStr() {
+            const d = new Date()
+            const hh = String(d.getHours()).padStart(2, "0")
+            const mm = String(d.getMinutes()).padStart(2, "0")
+            const ss = String(d.getSeconds()).padStart(2, "0")
+            return `${hh}:${mm}:${ss}`
+        }
+
+        function tick() {
+            $("clock").textContent = nowTimeStr()
+        }
+        setInterval(tick, 250)
+        tick()
+
+        function setLoginUI() {
+            $("loginPill").textContent = state.loggedIn ? "已登入（假）" : "未登入"
+            $("btnLogin").textContent = state.loggedIn ? "登出" : "登入（假）"
+        }
+
+        function clamp(n, a, b) { return Math.max(a, Math.min(b, n)) }
+
+        function parseBudget(b) {
+            if (b === "80-120") return [80, 120]
+            if (b === "120-200") return [120, 200]
+            if (b === "200-350") return [200, 350]
+            return [350, 9999]
+        }
+
+        function priceMid(p) {
+            const m = p.match(/\$(\d+)[–-](\d+)/)
+            if (!m) return 9999
+            return (Number(m[1]) + Number(m[2])) / 2
+        }
+
+        function scoreItem(item, q) {
+            if (state.prefs.blockNames[item.name]) return -99999
+
+            let s = 0
+            const [bmin, bmax] = parseBudget(q.budget)
+            const pm = priceMid(item.price)
+            if (pm >= bmin && pm <= bmax) s += 25
+            else s -= Math.abs(pm - (bmin + bmax) / 2) / 10
+
+            const d = item.baseDist
+            const maxD = Number(q.distance)
+            s += clamp((maxD - d) / 30, -30, 30)
+
+            if (q.diet === "veg" && item.veg) s += 18
+            if (q.diet === "veg" && !item.veg) s -= 25
+            if (q.diet === "no_spicy" && item.spicy) s -= 18
+            if (q.diet === "no_spicy" && !item.spicy) s += 6
+
+            const crave = (q.crave || "").trim()
+            if (crave) {
+                for (const t of item.type) {
+                    if (crave.includes(t)) s += 10
+                }
+            }
+
+            if (item.waitRisk === "低") s += 10
+            if (item.waitRisk === "高") s -= 10
+
+            for (const t of item.type) {
+                const w = state.prefs.likeTags[t] || 0
+                s += w * 2
+            }
+
+            return s
+        }
+
+        function pickThree(q) {
+            const scored = sampleDB
+                .map(it => ({ ...it, _score: scoreItem(it, q) }))
+                .sort((a, b) => b._score - a._score)
+
+            const best = scored[0]
+            const fastest = scored.slice().sort((a, b) => a.baseDist - b.baseDist)[0]
+            const fresh = scored.slice(0, 4).sort((a, b) => (Math.random() - 0.5))[0]
+
+            const mk = (it, mode) => {
+                const dist = it.baseDist
+                const why = mode === "穩妥" ? "綜合最符合預算、距離與等待風險"
+                    : mode === "最快" ? "距離最短、最省時間"
+                        : "在符合條件下，提供較新鮮的選擇"
+                const riskTag = it.waitRisk === "低" ? "good" : it.waitRisk === "中" ? "warn" : "bad"
+                return {
+                    mode,
+                    name: it.name,
+                    price: it.price,
+                    dist: `${dist}m`,
+                    risk: it.waitRisk,
+                    tags: it.type,
+                    riskTag,
+                    why
+                }
+            }
+
+            return [mk(best, "穩妥"), mk(fresh, "嘗鮮"), mk(fastest, "最快")]
+        }
+
+        function renderResults(list) {
+            const box = $("resultList")
+            box.innerHTML = ""
+            if (!list.length) {
+                box.innerHTML = `<div class="hint">尚未產生推薦。</div>`
+                return
+            }
+            list.forEach((r, idx) => {
+                const tagHtml = [
+                    `<span class="tag ${r.riskTag}">等待風險：${r.risk}</span>`,
+                    `<span class="tag">距離：${r.dist}</span>`,
+                    `<span class="tag">價位：${r.price}</span>`,
+                    ...r.tags.slice(0, 4).map(t => `<span class="tag">${t}</span>`)
+                ].join("")
+
+                const el = document.createElement("div")
+                el.className = "item"
+                el.innerHTML = `
+        <div class="itemTop">
+          <div>
+            <div class="title">${idx + 1}. ${r.mode}｜${r.name}</div>
+            <div class="meta">${r.why}</div>
+          </div>
+          <div class="meta">AI 分數：${Math.round(80 + Math.random() * 18)}</div>
+        </div>
+        <div class="tags">${tagHtml}</div>
+        <div class="itemBtns">
+          <button class="secondary" data-pick="${idx}">選這家</button>
+          <button class="ghost" data-block="${idx}">不想再看到</button>
+        </div>
+      `
+                box.appendChild(el)
+            })
+
+            box.querySelectorAll("[data-pick]").forEach(btn => {
+                btn.addEventListener("click", e => {
+                    const i = Number(e.currentTarget.getAttribute("data-pick"))
+                    selectResult(i)
+                })
+            })
+
+            box.querySelectorAll("[data-block]").forEach(btn => {
+                btn.addEventListener("click", e => {
+                    const i = Number(e.currentTarget.getAttribute("data-block"))
+                    const r = state.lastResults[i]
+                    state.prefs.blockNames[r.name] = true
+                    $("statusText").textContent = "已加入拒絕清單"
+                    $("resultBadge").textContent = "已更新"
+                    renderResults(state.lastResults)
+                })
+            })
+        }
+
+        function selectResult(i) {
+            state.selected = state.lastResults[i]
+            $("selName").textContent = state.selected.name
+            $("selDist").textContent = state.selected.dist
+            $("selPrice").textContent = state.selected.price
+            $("selSlot").textContent = "—"
+            $("bookState").textContent = "已選擇"
+            $("btnBook").disabled = false
+            $("btnRoute").disabled = false
+            $("btnLike").disabled = false
+            $("btnOk").disabled = false
+            $("btnNope").disabled = false
+            $("statusText").textContent = "已選擇餐廳"
+        }
+
+        function simulateBook() {
+            const slot = ["11:30", "11:45", "12:00", "12:15", "12:30"][Math.floor(Math.random() * 5)]
+            $("selSlot").textContent = slot
+            $("bookState").textContent = "已訂位（假）"
+            $("statusText").textContent = "訂位完成（假）"
+        }
+
+        function simulateRoute() {
+            $("bookState").textContent = "路線已產生（假）"
+            $("statusText").textContent = "已規劃路線（假）"
+            alert("已模擬開啟導航：你可以在正式版串接地圖服務。")
+        }
+
+        function feedback(kind) {
+            if (!state.selected) return
+            const delta = kind === "like" ? 2 : kind === "ok" ? 1 : -2
+            for (const t of state.selected.tags) {
+                state.prefs.likeTags[t] = (state.prefs.likeTags[t] || 0) + delta
+            }
+            $("statusText").textContent = kind === "like" ? "已記錄：喜歡" : kind === "ok" ? "已記錄：普通" : "已記錄：不喜歡"
+        }
+
+        function getQuery() {
+            return {
+                place: $("place").value,
+                budget: $("budget").value,
+                distance: $("distance").value,
+                diet: $("diet").value,
+                crave: $("crave").value,
+                timeSlot: $("timeSlot").value
+            }
+        }
+
+        function decide() {
+            const q = getQuery()
+            const list = pickThree(q)
+            state.lastResults = list
+            state.selected = null
+            $("resultBadge").textContent = "已產生"
+            $("statusText").textContent = "已生成 3 個方案"
+            $("bookState").textContent = "尚未選擇"
+            $("selName").textContent = "—"
+            $("selDist").textContent = "—"
+            $("selPrice").textContent = "—"
+            $("selSlot").textContent = "—"
+            $("btnBook").disabled = true
+            $("btnRoute").disabled = true
+            $("btnLike").disabled = true
+            $("btnOk").disabled = true
+            $("btnNope").disabled = true
+            renderResults(list)
+        }
+
+        function resetAll() {
+            $("place").value = ""
+            $("budget").value = "120-200"
+            $("distance").value = "600"
+            $("diet").value = "any"
+            $("crave").value = ""
+            $("timeSlot").value = "now"
+            state.lastResults = []
+            state.selected = null
+            $("resultBadge").textContent = "未產生"
+            $("statusText").textContent = "等待輸入"
+            $("bookState").textContent = "尚未選擇"
+            $("selName").textContent = "—"
+            $("selDist").textContent = "—"
+            $("selPrice").textContent = "—"
+            $("selSlot").textContent = "—"
+            $("btnBook").disabled = true
+            $("btnRoute").disabled = true
+            $("btnLike").disabled = true
+            $("btnOk").disabled = true
+            $("btnNope").disabled = true
+            renderResults([])
+        }
+
+        $("btnLogin").addEventListener("click", () => {
+            state.loggedIn = !state.loggedIn
+            setLoginUI()
+            $("statusText").textContent = state.loggedIn ? "已登入（假）" : "已登出"
+        })
+
+        $("btnDecide").addEventListener("click", decide)
+        $("btnReset").addEventListener("click", resetAll)
+        $("btnBook").addEventListener("click", simulateBook)
+        $("btnRoute").addEventListener("click", simulateRoute)
+        $("btnLike").addEventListener("click", () => feedback("like"))
+        $("btnOk").addEventListener("click", () => feedback("ok"))
+        $("btnNope").addEventListener("click", () => feedback("nope"))
+
+        setLoginUI()
+        renderResults([])
+    </script>
+</body>
+
+</html>
