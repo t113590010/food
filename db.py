@@ -1,22 +1,24 @@
+import os
 import psycopg2
 from psycopg2 import sql
-from typing import Dict, Any, Tuple, List
+from urllib.parse import urlparse
 
-# DB 連線設定
-DB_NAME = "food_sql"
-DB_USER = "postgres"
-DB_PASS = "1234"
-DB_HOST = "localhost"
-DB_PORT = "5432"
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+
+url = urlparse(DATABASE_URL)
+
 
 conn = psycopg2.connect(
-    dbname=DB_NAME,
-    user=DB_USER,
-    password=DB_PASS,
-    host=DB_HOST,
-    port=DB_PORT
+    dbname=url.path[1:],  
+    user=url.username,   
+    password=url.password,  
+    host=url.hostname,    
+    port=url.port      
 )
+
 cursor = conn.cursor()
+
 
 
 def ex(data: Dict[str, Any], separator: str = ' AND '):
