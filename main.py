@@ -2,7 +2,8 @@
 from flask import Flask,render_template,request,redirect, url_for, session, Response
 from datetime import datetime
 from werkzeug.utils import secure_filename
-import db,random, string,os
+import db,random, string,os,time
+
 app = Flask(__name__, template_folder='', static_folder='')
 app.secret_key = "A" 
 length = 4
@@ -455,6 +456,7 @@ def DelTable():
 if __name__=='__main__':
 
     app.run(debug = True)
+
 
 
 
