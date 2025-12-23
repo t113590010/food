@@ -1,0 +1,58 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand " href="/">首頁</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+            aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+
+                {% if 'user' in session  %}
+                <li class="nav-item">
+                    <a class="nav-link" href="/?edit=2">會員管理</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/?edit=5">訂單管理</a>
+                </li>
+                {% endif %}
+                {% if session.get('user') and session['user']['level']==1 %}
+                <li class="nav-item">
+                    <a class="nav-link" href="/?edit=3">食物類型管理</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="all_table">資料表管理</a>
+                </li>
+                {% endif %}
+                <li class="nav-item">
+                    <a class="nav-link" href="#">關於我們</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">服務</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="#">聯絡</a>
+                </li>
+                <li class="nav-item">
+                    {% if session.get('user') %}
+                    <span class="text-white nav-link">歡迎 {{ session['user']['account'] }}</span>
+                    {% else %}
+                    <!-- <span  class="text-white nav-link">尚未登入</span> -->
+                    {% endif %}
+                </li>
+                <li class="nav-item">
+                    <form action="/logout" method="post">
+
+                        {% if session.get('user') %}
+                        <button type="submit" class="nav-link">登出</button>
+                        {% else %}
+                        <a class="nav-link" href="login">尚未登入</a>
+                        {% endif %}
+                    </form>
+                </li>
+
+            </ul>
+        </div>
+    </div>
+</nav>

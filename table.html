@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>首頁</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+
+<body>
+    <script src="js/script.js"></script>
+    <!-- navbar -->
+    {% include 'navbar.html' %}
+
+    <!-- body -->
+    <div class="card">
+        <div class="card-header">
+            <h3>資料表管理</h3>
+        </div>
+        <div class="card-body">
+            <table border="1" cellpadding="8">
+                <thead>
+                    <tr>
+                        <th>資料表名稱</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for t in tables %}
+                    <tr>
+                        <td>{{ t.name }}</td>
+                        <td>
+                            {% for c in t.columns %}
+                            {{ c.name }} ({{ c.type }}){% if not loop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                        <td>
+                            <form action="DelTable" method="post">
+                                <button class="btn btn-outline-danger" name="del" value="{{ t.name }}"
+                                    onclick="return confirm('確定刪除?')">刪除</button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+</body>
+
+</html>

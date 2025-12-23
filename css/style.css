@@ -1,0 +1,24 @@
+@import url("https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css");
+
+.cent {
+    justify-content: center;
+}
+
+.row_cent {
+    display: flex;
+    align-items: center;
+    height: 100%;
+}
+
+.login_height{
+    height: 85vh;
+}
+
+.pre_img{
+    height: 200px;
+    width: 200px;
+}
+.pre_img_sm{
+    height: 100px;
+    width: 100px;
+}
