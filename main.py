@@ -413,7 +413,7 @@ def newAcc():
     
     if(checkAcc or checkEmail):
         return db.alert("已有此帳號或此信箱已被註冊",'/login')
-    db.ins(table.users,{'account':acc,'password':ps,'level':0,'email':email,'name':name})
+    db.ins(table.users,{'account':acc,'password':ps,'level':1,'email':email,'name':name})
     return db.alert("註冊成功",'/login')
 
 @app.route('/UpdAndDelUsers', methods=['POST'])
@@ -453,4 +453,5 @@ def DelTable():
     return redirect(url_for('home'))
 
 if __name__=='__main__':
+
     app.run(debug = True)
