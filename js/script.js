@@ -25,7 +25,7 @@ function getURL(str) {
 function index() {
     const imgInput = document.getElementById('img');
     const previewImg = document.querySelector('.pre_img');
-    const imgInput_sm = document.getElementById('img_sm');
+    // const imgInput_sm = document.getElementById('img_sm');
     const previewImg_sm = document.querySelector('.pre_img_sm');
     function calculateTotal() {
         const inputs = document.querySelectorAll('input.count');
@@ -47,7 +47,7 @@ function index() {
     document.querySelectorAll('input.count').forEach(input => {
         input.addEventListener('input', calculateTotal);
     });
-    if (imgInput && imgInput_sm) {
+    if (imgInput ) {
 
         imgInput.addEventListener('change', function () {
             const file = this.files[0];
@@ -65,25 +65,25 @@ function index() {
             console.log(file);
 
         });
-        document.querySelectorAll('input[type="file"]').forEach(input => {
+        document.querySelectorAll('.img_btn').forEach(input => {
             input.addEventListener('change', function () {
+
+                console.log(this.id);
+
+                const id = this.id.replace('img_sm_', '');
+                const previewImg_sm = document.getElementById('pre_img_sm_' + id);
+
                 const file = this.files[0];
-                const previewId = `pre_img_sm_${this.id}`;  
-                const previewImg = document.getElementById(previewId);
+                if (!file) return;
 
-                if (file) {
-                    const reader = new FileReader();
-                    reader.onload = function (e) {
-                        previewImg.src = e.target.result; 
-                    }
-                    reader.readAsDataURL(file);
-                } else {
-                    previewImg.src = "";  
-                }
-
-                console.log(file);
+                const reader = new FileReader();
+                reader.onload = e => {
+                    previewImg_sm.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
             });
         });
+
     }
 }
 function login() {
