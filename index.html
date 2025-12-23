@@ -248,7 +248,7 @@
                                 {% for s in food_types %}
                                 <tr>
                                     <form action="/UpdAndDelFoodType" method="post" enctype="multipart/form-data">
-                                        <td><img src="{{s.img}}" class="pre_img_sm" alt=""></td>
+                                        <td><img src="{{s.img}}" class="pre_img_sm" alt="" id="pre_img_sm_{{s.id}}"></td>
                                         <td><input type="text" class="form-control" value="{{ s.name }}" name="name">
                                         </td>
                                         <td><input type="number" min="1" class="form-control" value="{{ s.price }}"
