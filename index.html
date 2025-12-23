@@ -193,7 +193,7 @@
         </div>
         {% endif %}
         <!-- 食物類型管理 -->
-        {% if 'user'  in session and session['user']['level']==1 and url=='3' %}
+        {% if 'user' in session and session['user']['level']==1 and url=='3' %}
 
         <div class="card">
             <div class="card-body">
@@ -246,9 +246,10 @@
                             </thead>
                             <tbody>
                                 {% for s in food_types %}
-                                <tr>
-                                    <form action="/UpdAndDelFoodType" method="post" enctype="multipart/form-data">
-                                        <td><img src="{{s.img}}" class="pre_img_sm" alt="" id="pre_img_sm_{{s.id}}"></td>
+                                <form action="/UpdAndDelFoodType" method="post" enctype="multipart/form-data">
+                                    <tr>
+                                        <td><img src="{{s.img}}" class="pre_img_sm" alt="" id="pre_img_sm_{{s.id}}">
+                                        </td>
                                         <td><input type="text" class="form-control" value="{{ s.name }}" name="name">
                                         </td>
                                         <td><input type="number" min="1" class="form-control" value="{{ s.price }}"
@@ -257,16 +258,16 @@
                                                 id="">{{ s.content }}</textarea>
                                         </td>
                                         <td class="col-3">
-                                            <label for="img_sm"
+                                            <label for="img_sm_{{s.id}}"
                                                 class="btn form-control btn-outline-secondary">上傳圖片</label>
-                                            <input type="file" name="img" id="img_sm" hidden>
+                                            <input type="file" name="img" id="img_sm_{{s.id}}" class="img_btn" hidden>
                                             <button class="btn btn-outline-warning" name="upd"
                                                 value="{{s.id}}">修改</button>
                                             <button class="btn btn-outline-danger" name="del" value="{{s.id}}"
                                                 onclick="return confirm('確定刪除?')">刪除</button>
                                         </td>
-                                    </form>
-                                </tr>
+                                    </tr>
+                                </form>
                                 {% endfor %}
                             </tbody>
                         </table>
