@@ -18,8 +18,8 @@ document.addEventListener("DOMContentLoaded", () => {
     console.log(page)
 });
 
-function getURL(str){
-    return  new URLSearchParams(window.location.search).get(str)
+function getURL(str) {
+    return new URLSearchParams(window.location.search).get(str)
 }
 
 function index() {
@@ -39,8 +39,8 @@ function index() {
 
         document.getElementById('total').textContent = total;
     }
-  
-    if(getURL('edit')=='1'||getURL('upd')=='5' ){
+
+    if (getURL('edit') == '1' || getURL('upd') == '5') {
         calculateTotal()
     }
 
@@ -65,19 +65,24 @@ function index() {
             console.log(file);
 
         });
-        imgInput_sm.addEventListener('change', function () {
-            const file = this.files[0];
-            if (file) {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    previewImg_sm.src = e.target.result
-                }
-                reader.readAsDataURL(file);
-            } else {
-                previewImg_sm.src = "";
-            }
-            console.log(file);
+        document.querySelectorAll('input[type="file"]').forEach(input => {
+            input.addEventListener('change', function () {
+                const file = this.files[0];
+                const previewId = `pre_img_sm_${this.id}`;  
+                const previewImg = document.getElementById(previewId);
 
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function (e) {
+                        previewImg.src = e.target.result; 
+                    }
+                    reader.readAsDataURL(file);
+                } else {
+                    previewImg.src = "";  
+                }
+
+                console.log(file);
+            });
         });
     }
 }
