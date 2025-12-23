@@ -2,7 +2,7 @@ import os
 import psycopg2
 from psycopg2 import sql
 from urllib.parse import urlparse
-
+from typing import Dict, Any 
 DATABASE_URL = os.getenv("DATABASE_URL")
 
 
@@ -160,4 +160,5 @@ def alert(content, where=""):
         alert('{safe_content}');
         window.location.href = '{where}';
     </script>
+
     """
