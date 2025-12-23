@@ -277,7 +277,7 @@ def add_foodtype():
         return db.alert("未選擇圖片", "/?edit=3")
 
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
+        filename = secure_filename(file.filename) + str(int(time.time())) 
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)  
 
@@ -314,7 +314,7 @@ def UpdAndDelfoodType():
 
         file = request.files.get('img')
         if file and file.filename != '' and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
+            filename = secure_filename(file.filename) + str(int(time.time())) 
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
             update_data['img'] = filepath  
@@ -455,4 +455,5 @@ def DelTable():
 if __name__=='__main__':
 
     app.run(debug = True)
+
 
