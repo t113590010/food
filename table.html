@@ -19,7 +19,7 @@
             <h3>資料表管理</h3>
         </div>
         <div class="card-body">
-            <table border="1" cellpadding="8">
+            <table border="1" cellpadding="8" class="table">
                 <thead>
                     <tr>
                         <th>資料表名稱</th>
@@ -34,12 +34,7 @@
                             {{ c.name }} ({{ c.type }}){% if not loop.last %}, {% endif %}
                             {% endfor %}
                         </td>
-                        <td>
-                            <form action="DelTable" method="post">
-                                <button class="btn btn-outline-danger" name="del" value="{{ t.name }}"
-                                    onclick="return confirm('確定刪除?')">刪除</button>
-                            </form>
-                        </td>
+                   
                     </tr>
                     {% endfor %}
 
@@ -48,5 +43,6 @@
         </div>
     </div>
 </body>
+
 
 </html>
