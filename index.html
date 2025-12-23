@@ -114,13 +114,14 @@
                                 </div>
                                 <h4>餐點:{{ s.name }}</h4>
                                 <p>敘述:{{ s.content }}</p>
-                                <h5>單價: {{ s.price }}</h5>
-                                <label for="count_{{ s.id }}">數量</label>
-                                <input type="number" min="0" class="form-control count" data-price="{{ s.price }}"
-                                    name="count[{{ s.id }}]"
-                                    value="{% if session.get('tmp_order') and s.id in session['tmp_order']['food_type_ids'] %}{{ session['tmp_order']['counts'][session['tmp_order']['food_type_ids'].index(s.id)] }}{% else %}0{% endif %}">
+                                <div class="mt-auto">
+                                    <h5>單價: {{ s.price }}</h5>
+                                    <label for="count_{{ s.id }}">數量</label>
+                                    <input type="number" min="0" class="form-control count" data-price="{{ s.price }}"
+                                        name="count[{{ s.id }}]"
+                                        value="{% if session.get('tmp_order') and s.id in session['tmp_order']['food_type_ids'] %}{{ session['tmp_order']['counts'][session['tmp_order']['food_type_ids'].index(s.id)] }}{% else %}0{% endif %}">
 
-
+                                </div>
                             </div>
                         </div>
                         {% endfor %}
@@ -375,5 +376,6 @@
 
 
 </body>
+
 
 </html>
