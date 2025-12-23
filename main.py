@@ -15,7 +15,7 @@ class Table:
     food_rating='food_rating'
 table = Table()
 #圖片上傳過濾
-UPLOAD_FOLDER = '/mnt/data/uploads'
+UPLOAD_FOLDER = '/static/uploads/'
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True) 
 
@@ -455,6 +455,7 @@ def DelTable():
 if __name__=='__main__':
 
     app.run(debug = True)
+
 
 
 
