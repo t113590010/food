@@ -3,3 +3,4 @@ gunicorn
 Flask-SQLAlchemy
 psycopg2
 Werkzeug
+cloudinary
