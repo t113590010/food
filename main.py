@@ -285,10 +285,6 @@ def add_foodtype():
         return db.alert("未選擇圖片", "/?edit=3")
 
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename) + str(int(time.time())) 
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)  
-
         try:
             upload_result = cloudinary.uploader.upload(file)
             img_url = upload_result['secure_url']
@@ -305,7 +301,6 @@ def add_foodtype():
                 "rating_ids": []
             })
             return redirect(url_for('home', edit='3'))
-            
         except Exception as e:
             print(e)
             return db.alert("圖片上傳失敗", "/?edit=3")
@@ -329,10 +324,6 @@ def UpdAndDelfoodType():
 
         file = request.files.get('img')
         if file and file.filename != '' and allowed_file(file.filename):
-            filename = secure_filename(file.filename) + str(int(time.time())) 
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-            update_data['img'] = filepath
             try:
                 upload_result = cloudinary.uploader.upload(file)
                 update_data['img'] = upload_result['secure_url'] 
