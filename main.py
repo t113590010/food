@@ -2,7 +2,14 @@
 from flask import Flask,render_template,request,redirect, url_for, session, Response
 from datetime import datetime
 from werkzeug.utils import secure_filename
-import db,random, string,os,time
+import db,random, string,os,time,cloudinary,cloudinary.uploader
+
+cloudinary.config(
+    cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    api_key    = os.environ.get('CLOUDINARY_API_KEY'),
+    api_secret = os.environ.get('CLOUDINARY_API_SECRET'),
+    secure     = True
+)
 
 app = Flask(__name__, template_folder='', static_folder='')
 app.secret_key = "A" 
@@ -282,19 +289,26 @@ def add_foodtype():
         filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(filepath)  
 
-        target = db.sel("food_type", {'name': name})
-        if target:
-            return db.alert('已有此類型菜單', '/')
+        try:
+            upload_result = cloudinary.uploader.upload(file)
+            img_url = upload_result['secure_url']
 
-        db.ins("food_type", {
-            "name": name,
-            "price": int(price),
-            "content": content,
-            "img": filepath   ,
-            "rating_ids": []
-        })
+            target = db.sel("food_type", {'name': name})
+            if target:
+                return db.alert('已有此類型菜單', '/')
 
-        return redirect(url_for('home', edit='3'))
+            db.ins("food_type", {
+                "name": name,
+                "price": int(price),
+                "content": content,
+                "img": img_url,
+                "rating_ids": []
+            })
+            return redirect(url_for('home', edit='3'))
+            
+        except Exception as e:
+            print(e)
+            return db.alert("圖片上傳失敗", "/?edit=3")
 
     else:
         return db.alert("檔案格式不支援", "/?edit=3")
@@ -318,7 +332,13 @@ def UpdAndDelfoodType():
             filename = secure_filename(file.filename) + str(int(time.time())) 
             filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
             file.save(filepath)
-            update_data['img'] = filepath  
+            update_data['img'] = filepath
+            try:
+                upload_result = cloudinary.uploader.upload(file)
+                update_data['img'] = upload_result['secure_url'] 
+            except Exception as e:
+                print(e)
+                return db.alert("圖片更新失敗", "/?edit=3")  
 
         db.upd("food_type", update_data, {"id": id})
 
