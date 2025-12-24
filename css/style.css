@@ -15,10 +15,12 @@
 }
 
 .pre_img{
-    height: 200px;
-    width: 200px;
+    width: 90%;       
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
 }
 .pre_img_sm{
-    height: 100px;
-    width: 100px;
+    width: 90%;       
+    aspect-ratio: 1 / 1;
+    object-fit: cover;
 }
