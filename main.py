@@ -44,93 +44,99 @@ def allowed_file(filename):
 # ins 
 # db.ins("students",{"name":"大帥哥","score":50})
 
+# 餐點類型
+CATEGORY_MAP = {
+    # --- 主食類 ---
+    'rice': '精選飯食',
+    'noodle': '經典麵食 ',
+    'western': '西式主餐',
+    'dumpling': '水餃 & 港式點心',
+
+    # --- 小吃/配菜類 ---
+    'fried': '酥脆炸物 (雞排/薯條)',
+    'appetizer': '開胃小菜 (冷盤/滷味)',
+    'veg': '燙青菜 & 沙拉',
+
+    # --- 飲料/湯品 ---
+    'drink': '飲品',
+
+    # --- 其他 ---
+    'dessert': '點心',
+
+}
 
 @app.route('/')
 def home():
    
     url = request.args.get('edit')or '1'
-        
+    keyword = request.args.get('keyword')
+    selected_cats = request.args.getlist('category') 
+    min_price = request.args.get('min_price')        
+    max_price = request.args.get('max_price')       
+    sort_option = request.args.get('sort')
+
+
     upd_food_url = request.args.get('upd')
     upd_food_data = None
     food = db.sel(table.food)
     food_types = db.sel(table.food_type)
-    if 'user' not in session :
-        if(url == '1'):
-            return render_template("index.html",url=url,food_types= food_types,upd_food_data=upd_food_data )
+    if keyword or selected_cats or min_price or max_price or sort_option:
+        filtered_result = []
+
+        for f in food_types:
+            is_match = True 
             
+            # --- A. 關鍵字搜尋 ---
+            if keyword:
+                keyword = keyword.strip()
+                if keyword not in f['name'] and keyword not in f['content']:
+                    is_match = False
+            
+            # --- B. 分類篩選 ---
+            if is_match and selected_cats:
+                
+                if str(f.get('type')) not in selected_cats:
+                    is_match = False
+
+            # --- C. 價格範圍篩選 ---
+            if is_match:
+                try:
+                    price = int(f.get('price', 0))
+                    # 檢查最低價
+                    if min_price and min_price.isdigit():
+                        if price < int(min_price):
+                            is_match = False
+                    # 檢查最高價
+                    if max_price and max_price.isdigit():
+                        if price > int(max_price):
+                            is_match = False
+                except:
+                    pass # 如果價格資料有問題不是數字，就跳過檢查
+
+            # --- D. 倖存者加入名單 ---
+            if is_match:
+                filtered_result.append(f)
+        
+        # --- E. 排序邏輯 (對過濾後的結果排序) ---
+        if sort_option == 'price_asc':
+            # 價格：低 -> 高
+            filtered_result.sort(key=lambda x: int(x.get('price', 0)))
+        elif sort_option == 'price_desc':
+            # 價格：高 -> 低
+            filtered_result.sort(key=lambda x: int(x.get('price', 0)), reverse=True)
         else:
-            return  db.alert('未登入','/login')
-    
-    
-    if url == '2' and session['user']['level']!=1:
-        users = db.sel(table.users,{'id':session['user']['id']})
-        return render_template("index.html",user= session['user'],url=url,users =users)
-    
-    #訂單管理
-    if url == '5':
-        if(session['user']['level']==1):
-            for f in food:
-                user_data = db.sel(table.users, {'id': f['user_id']})
-                if user_data:
-                    f['user_name'] = user_data[0]['name']
-                    f['user_email'] = user_data[0]['email']
-        else:
-            food = db.sel(table.food,{'user_id':session['user']['id']})
-            for f in food:
-                print('測試')
-                f['user_name'] = session['user']['name']
-                f['user_email'] =session['user']['email']
-    print(food)
-
-
-
-    if upd_food_url:
-        upd_food_url = int(upd_food_url)
-        for f in food:
-            if f['id'] == upd_food_url:
-                # --- 加工資料 ---
-                if(session['user']['level']==1):
-                    user_data = db.sel(table.users, {'id': f['user_id']})
-                    f['user_name'] = user_data[0]['name']
-                    f['user_email'] = user_data[0]['email']
-                else:
-                    f['user_name'] =  session['user']['name']
-                    f['user_email'] = session['user']['email']
-
-                f['food_types'] = []
-                f['food_names'] = []
-                f['total_price'] = 0
-
-                # 確保 food_type_id 是 list
-                food_type_ids = f['food_type_id']
-                if not isinstance(food_type_ids, list):
-                    food_type_ids = [food_type_ids]
-
-                for fid in food_type_ids:
-                    food_type_data = db.sel(table.food_type, {'id': fid})
-                    if food_type_data:
-                        ft = food_type_data[0]
-                        f['food_types'].append({
-                            'name': ft['name'],
-                            'unit_price': ft['price']
-                        })
-                        f['food_names'].append(ft['name'])
-                        f['total_price'] += ft['price']
-
-                f['food_names'] = ", ".join(f['food_names'])
-                upd_food_data = f
-                break
-
-
-    # print(food)
-
-    food_types = db.sel(table.food_type)
-    users = db.sel(table.users)
-    # print(session['user'])
-    print(upd_food_data)
-
-    # print(users)
-    return render_template("index.html", food=food,user= session['user'],url=url, food_types=food_types,users =users,upd_food_data=upd_food_data)
+            # 預設：最新上架 (假設 ID 越大越新)
+            filtered_result.sort(key=lambda x: x['id'], reverse=True)
+        print()
+        food_types = filtered_result
+        return render_template("index.html", 
+                               url='1',                  
+                               food_types=food_types,    
+                               food=food,               
+                               user=session.get('user'),  
+                               upd_food_data=None,       
+                               category_map=CATEGORY_MAP, 
+                               request=request)
 
 
 # --- navbar ---
@@ -196,7 +202,7 @@ def tmp_food():
 
     # 解析 count[ID]，配合 HTML
     counts_dict = {k[6:-1]: v for k, v in form_data.items() if k.startswith('count[')}
-
+    
     ids = []
     counts = []
     names=[]
@@ -226,6 +232,11 @@ def tmp_food():
         names.append(food_type['name'])
         prices.append(food_type['price'])
 
+    if total ==0:
+        # print('成功')
+        return  db.alert('未選擇餐點','/')
+
+    
 
     session['tmp_order'] = {
         "food_type_ids": ids,
@@ -266,14 +277,12 @@ def add_food():
     return redirect(url_for('home', edit='1'))
 
 
-
-
-
 @app.route('/add_foodtype', methods=['POST'])
 def add_foodtype():
     name = request.form.get('name')
     price = request.form.get('price')
     content = request.form.get('content')
+    category = request.form.get('category')
 
    
     if 'img' not in request.files:
@@ -285,25 +294,24 @@ def add_foodtype():
         return db.alert("未選擇圖片", "/?edit=3")
 
     if file and allowed_file(file.filename):
-        try:
-            upload_result = cloudinary.uploader.upload(file)
-            img_url = upload_result['secure_url']
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)  
 
-            target = db.sel("food_type", {'name': name})
-            if target:
-                return db.alert('已有此類型菜單', '/')
+        target = db.sel("food_type", {'name': name})
+        if target:
+            return db.alert('已有此類型菜單', '/')
 
-            db.ins("food_type", {
-                "name": name,
-                "price": int(price),
-                "content": content,
-                "img": img_url,
-                "rating_ids": []
-            })
-            return redirect(url_for('home', edit='3'))
-        except Exception as e:
-            print(e)
-            return db.alert("圖片上傳失敗", "/?edit=3")
+        db.ins("food_type", {
+            "name": name,
+            "price": int(price),
+            "content": content,
+            "img": filepath   ,
+            "rating_ids": [],
+            "type": category
+        })
+
+        return redirect(url_for('home', edit='3'))
 
     else:
         return db.alert("檔案格式不支援", "/?edit=3")
@@ -316,20 +324,22 @@ def UpdAndDelfoodType():
         name = request.form.get('name')
         price = request.form.get('price')
         content = request.form.get('content')
+        category = request.form.get('category')
+      
+        
         update_data = {
             "name": name,
             "price": int(price),
-            "content": content
+            "content": content,
+            "type": category
         }
 
         file = request.files.get('img')
         if file and file.filename != '' and allowed_file(file.filename):
-            try:
-                upload_result = cloudinary.uploader.upload(file)
-                update_data['img'] = upload_result['secure_url'] 
-            except Exception as e:
-                print(e)
-                return db.alert("圖片更新失敗", "/?edit=3")  
+            filename = secure_filename(file.filename)
+            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+            file.save(filepath)
+            update_data['img'] = filepath  
 
         db.upd("food_type", update_data, {"id": id})
 
@@ -467,6 +477,7 @@ def DelTable():
 if __name__=='__main__':
 
     app.run(debug = True)
+
 
 
 
