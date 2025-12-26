@@ -137,7 +137,83 @@ def home():
                                upd_food_data=None,       
                                category_map=CATEGORY_MAP, 
                                request=request)
+    if 'user' not in session :
+        if(url == '1'):
+            return render_template("index.html",url=url,food_types= food_types,upd_food_data=upd_food_data ,category_map =CATEGORY_MAP )
+            
+        else:
+            return  db.alert('未登入','/login')
+    
+    
+    if url == '2' and session['user']['level']!=1:
+        users = db.sel(table.users,{'id':session['user']['id']})
+        return render_template("index.html",user= session['user'],url=url,users =users)
+    
+    #訂單管理
+    if url == '5':
+        if(session['user']['level']==1):
+            for f in food:
+                user_data = db.sel(table.users, {'id': f['user_id']})
+                if user_data:
+                    f['user_name'] = user_data[0]['name']
+                    f['user_email'] = user_data[0]['email']
+        else:
+            food = db.sel(table.food,{'user_id':session['user']['id']})
+            for f in food:
+                print('測試')
+                f['user_name'] = session['user']['name']
+                f['user_email'] =session['user']['email']
+    print(food)
 
+
+
+    if upd_food_url:
+        upd_food_url = int(upd_food_url)
+        for f in food:
+            if f['id'] == upd_food_url:
+                # --- 加工資料 ---
+                if(session['user']['level']==1):
+                    user_data = db.sel(table.users, {'id': f['user_id']})
+                    f['user_name'] = user_data[0]['name']
+                    f['user_email'] = user_data[0]['email']
+                else:
+                    f['user_name'] =  session['user']['name']
+                    f['user_email'] = session['user']['email']
+
+                f['food_types'] = []
+                f['food_names'] = []
+                f['total_price'] = 0
+
+                # 確保 food_type_id 是 list
+                food_type_ids = f['food_type_id']
+                if not isinstance(food_type_ids, list):
+                    food_type_ids = [food_type_ids]
+
+                for fid in food_type_ids:
+                    food_type_data = db.sel(table.food_type, {'id': fid})
+                    if food_type_data:
+                        ft = food_type_data[0]
+                        f['food_types'].append({
+                            'name': ft['name'],
+                            'unit_price': ft['price']
+                        })
+                        f['food_names'].append(ft['name'])
+                        f['total_price'] += ft['price']
+
+                f['food_names'] = ", ".join(f['food_names'])
+                upd_food_data = f
+                break
+
+
+    # print(food)
+
+    food_types = db.sel(table.food_type)
+    users = db.sel(table.users)
+    # print(session['user'])
+    print(upd_food_data)
+
+    # print(users)
+    return render_template("index.html", food=food,user= session['user'],url=url, food_types=food_types,users =users,upd_food_data=upd_food_data,category_map =CATEGORY_MAP )
 
 # --- navbar ---
 @app.route('/navbar')
@@ -477,6 +553,7 @@ def DelTable():
 if __name__=='__main__':
 
     app.run(debug = True)
+
 
 
 
