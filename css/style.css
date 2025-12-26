@@ -24,3 +24,162 @@
     aspect-ratio: 1 / 1;
     object-fit: cover;
 }
+
+/* --- 整體佈局 Layout --- */
+.main-container {
+    display: flex; /* 讓左右橫排 */
+    max_width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    gap: 30px; /* 左右之間的間距 */
+    align-items: flex-start; /* 讓側邊欄不會被拉長 */
+}
+
+/* --- 左側篩選欄 Sidebar --- */
+.filter-sidebar {
+    width: 250px; /* 固定寬度 */
+    flex-shrink: 0; /* 不要被擠壓 */
+    background: #fff;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    border: 1px solid #eee;
+    
+    /* 讓它捲動時黏在上面 (Optional) */
+    position: sticky;
+    top: 20px; 
+}
+
+.filter-sidebar h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.2rem;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+.filter-group {
+    margin-bottom: 25px;
+}
+
+.filter-group h4 {
+    margin-bottom: 10px;
+    font-size: 1rem;
+    color: #333;
+}
+
+/* Checkbox & Radio 樣式 */
+.checkbox-item, .radio-item {
+    display: block; /* 讓每個選項換行 */
+    margin-bottom: 8px;
+    cursor: pointer;
+    color: #555;
+    font-size: 0.95rem;
+}
+
+.checkbox-item input, .radio-item input {
+    margin-right: 8px;
+}
+
+/* 價格輸入框 */
+.price-inputs {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.price-inputs input {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+/* 按鈕樣式 */
+.filter-btn {
+    width: 100%;
+    padding: 10px;
+    background-color: #333;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1rem;
+    margin-bottom: 10px;
+}
+
+.reset-btn {
+    display: block;
+    text-align: center;
+    color: #888;
+    text-decoration: none;
+    font-size: 0.9rem;
+}
+
+.filter-btn:hover {
+    background-color: #555;
+}
+
+/* --- 右側內容區 Main --- */
+.content-area {
+    flex-grow: 1; /* 佔滿剩餘空間 */
+}
+
+/* 上方搜尋框 */
+.top-search-bar {
+    margin-bottom: 20px;
+}
+
+.search-form {
+    display: flex;
+    gap: 10px;
+}
+
+.search-form input {
+    flex-grow: 1;
+    padding: 12px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1rem;
+}
+
+.search-form button {
+    padding: 0 25px;
+    background-color: #ff6b6b; /* 主色調 */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* --- 商品網格 Grid --- */
+.food-grid {
+    display: grid;
+    /* 自動調整欄數：最小 220px */
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+    gap: 20px;
+}
+
+/* 卡片與圖片樣式 (延續之前的) */
+.food-card {
+    background: white;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    transition: transform 0.2s;
+}
+
+.food-card:hover {
+    transform: translateY(-5px);
+}
+
+.card-img {
+    width: 100%;
+    aspect-ratio: 1/1; /* 保持正方形 */
+    object-fit: cover;
+}
+
+.card-info {
+    padding: 15px;
+}
