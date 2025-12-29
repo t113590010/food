@@ -1,6 +1,7 @@
 Flask
 gunicorn
 Flask-SQLAlchemy
-psycopg2
+psycopg2-binary
 Werkzeug
 cloudinary
+google-genai
