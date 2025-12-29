@@ -14,6 +14,26 @@
     {% include 'navbar.html' %}
 
     <!-- body -->
+    <!-- AI -->
+    <div id="ai-chat-btn">
+        🤖
+    </div>
+
+    <div id="ai-chat-window">
+        <div class="chat-header">
+            <span>AI 餐廳小幫手</span>
+            <span id="chat-close-btn" class="close-btn">×</span>
+        </div>
+        <div class="chat-body" id="chat-body">
+            <div class="message ai-message">
+                嗨！我是你的專屬 AI 助手 👋<br>想查訂單或是推薦美食嗎？
+            </div>
+        </div>
+        <div class="chat-footer">
+            <input type="text" id="chat-input" placeholder="輸入訊息...">
+            <button id="chat-send-btn">送出</button>
+        </div>
+    </div>
     <!-- 首頁 所有訂單 -->
     {% if url=='1' or upd_food_data %}
     <div class="card">
@@ -52,8 +72,9 @@
                                                 <h5>剩餘存貨:{{s.count}}</h5>
                                                 <h5>單價: {{ s.price }}元</h5>
                                                 <label for="count_{{ s.id }}">數量</label>
-                                                <input type="number" min="0" max="{{s.count}}" class="form-control count" 
-                                                    data-price="{{ s.price }}" name="count[{{ s.id }}]"
+                                                <input type="number" min="0" max="{{s.count}}"
+                                                    class="form-control count" data-price="{{ s.price }}"
+                                                    name="count[{{ s.id }}]"
                                                     value="{% if upd_food_data and s.id in upd_food_data['food_type_id'] -%}{{ upd_food_data['food_counts'][upd_food_data['food_type_id'].index(s.id)] -}}{% else %}0{% endif %}"
                                                     required>
 
@@ -501,7 +522,35 @@
         </table>
 
         {% endif %}
+
         {% if 'user' in session and session['user']['level']==1 and url=='6' %}
+        <form action="/set_model" method="post">
+            <div class="container">
+
+                <h3>當前模型:</h3>
+                <div class="row">
+                    <div class="col">
+                        <select class="form-select" name="model" id="modelSelect" onchange="this.form.submit()">
+                            {% for m in allmodel %}
+                            <option value="{{ m.id }}" {% if ai_config and ai_config['current_model']==m.id %}selected{%
+                                endif %}>
+                                {{ m.name }}
+                            </option>
+                            {% endfor %}
+                        </select>
+
+                    </div>
+                    <div class="col-auto">
+                        <button type="submit" class="btn btn-outline-primary" name="upd_ai">切換</button>
+
+                    </div>
+                </div>
+            </div>
+        </form>
+        {% endif %}
+
+        {% if url=='7' %}
+
         {% endif %}
 
 

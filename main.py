@@ -1,12 +1,19 @@
 
-from flask import Flask,render_template,request,redirect, url_for, session, Response
-from datetime import datetime
+from flask import Flask,render_template,request,redirect, url_for, session, Response,jsonify
+from datetime import datetime,date
 from werkzeug.utils import secure_filename
-import db,random, string,os
+import db,random, string,os,json
+from google import genai
+
+
 app = Flask(__name__, template_folder='', static_folder='')
 app.secret_key = "A" 
 length = 4
-
+api_key = os.environ.get("GEMINI_API_KEY")
+AI_CONFIG = {
+    'current_model': 'gemini-2.5-flash', # 預設值
+    'models': []
+}
 #資歷表(新資料表在這引入 之後都用table.名稱 方便管理)
 class Table:
     users= 'users'
@@ -57,6 +64,121 @@ CATEGORY_MAP = {
 
 }
 
+def get_google_models():
+
+    if AI_CONFIG.get('models'):
+        return AI_CONFIG['models']
+
+    if not api_key: return []
+
+    try:
+ 
+        client = genai.Client(api_key=api_key)
+        valid_models = []
+        
+        for m in client.models.list():
+            if "gemini" in m.name and "generateContent" in m.supported_actions:
+                display_name = m.name.replace("models/", "")
+                valid_models.append({
+                    'id': m.name,
+                    'name': display_name
+                })
+        
+        valid_models.sort(key=lambda x: x['name'], reverse=True)
+
+        AI_CONFIG['models'] = valid_models
+        
+        return valid_models
+
+    except Exception as e:
+        print(f"抓取模型失敗: {e}")
+        return [{'id': 'gemini-2.5-flash', 'name': 'gemini-2.5-flash'}]
+
+def json_serial(obj):
+    """JSON serializer for objects not serializable by default json code"""
+    if isinstance(obj, (datetime, date)):
+        return obj.isoformat()
+    raise TypeError ("Type not serializable")
+
+@app.route('/api/chat', methods=['POST'])
+def api_chat():
+    # 1. 安全性檢查
+    if not api_key: 
+        print("錯誤：找不到 GEMINI_API_KEY")
+        return jsonify({'reply': '系統維護中 (API Key Missing)'}), 500
+
+    try:
+        # 讀取 AI_CONFIG 設定 (你的模型切換功能)
+        current_model = AI_CONFIG.get('current_model', 'gemini-2.5-flash')
+        client = genai.Client(api_key=api_key)
+        
+        data = request.json
+        user_msg = data.get('message', '')
+
+  
+        context_info = ""
+
+  
+        menu_list = db.sel(table.food_type)
+        context_info += f"【餐廳完整菜單資料】:\n{json.dumps(menu_list, default=json_serial, ensure_ascii=False)}\n\n"
+
+    
+        if 'user' in session:
+           
+            user_info = session['user'].copy()
+            user_info.pop('password', None) 
+            
+            context_info += f"【目前登入者詳細資料】: {json.dumps(user_info, default=json_serial, ensure_ascii=False)}\n"
+
+            orders = db.sel(table.food, {'user_id': user_info['id']})
+            context_info += f"【登入者歷史訂單紀錄】: {json.dumps(orders, default=json_serial, ensure_ascii=False)}\n"
+        else:
+            context_info += "【目前登入者】: 遊客 (未登入)\n"
+
+  
+        system_prompt = f"""
+        你是一個專業的餐廳 AI 助手，你公司的老闆是褚昀澔，公司老闆不用特別提起。
+        請根據下方提供的【完整資料庫資訊】來回答使用者的問題。
+        
+        資料內容包含：
+        1. 餐廳完整菜單 (包含庫存、圖片路徑、價格、描述等所有欄位)。
+        2. 使用者詳細個資 (如果已登入)。
+        3. 使用者的歷史訂單紀錄。
+
+        請靈活運用這些資料，如果使用者問關於他自己的資訊(例如Email、等級)或是訂單細節，請直接從資料中查找。
+        
+        【資料庫資訊】：
+        {context_info}
+        """
+
+        print(f"AI 正在使用模型: {current_model}") 
+        chat = client.chats.create(model=current_model)
+    
+        response = chat.send_message(f"{system_prompt}\n\n使用者問題：{user_msg}")
+        
+        return jsonify({'reply': response.text})
+
+ 
+
+    except Exception as e:
+        print(f"AI Error: {e}")
+        return jsonify({'reply': 'AI 罷工了，請稍後再試'}), 500
+
+@app.route('/set_model', methods=['POST'])
+def set_model():
+
+    if 'user' not in session or session['user']['level'] != 1:
+        return db.alert('權限不足', '/')
+    
+
+    new_model = request.form.get('model')
+ 
+    if new_model:
+        AI_CONFIG['current_model'] = new_model
+        print(f" AI 模型已切換為: {new_model}")
+
+    return redirect(url_for('home', edit='6'))
+
 @app.route('/')
 def home():
    
@@ -66,58 +188,46 @@ def home():
     min_price = request.args.get('min_price')        
     max_price = request.args.get('max_price')       
     sort_option = request.args.get('sort')
-
+    allmodel = get_google_models()
 
     upd_food_url = request.args.get('upd')
     upd_food_data = None
     food = db.sel(table.food)
     food_types = db.sel(table.food_type)
-    food_type_counts = 0
-    food_counts = 0
- 
-
     
     
     if keyword or selected_cats or min_price or max_price or sort_option:
-        filtered_result = [] # 1. 建立一個空清單，用來裝篩選後的結果
-
+        filtered_result = [] 
         for f in food_types:
-            is_match = True # 預設這道菜是符合的，下面開始找理由淘汰它
+            is_match = True 
             
-            # --- A. 關鍵字搜尋 ---
+        
             if keyword:
                 keyword = keyword.strip()
-                # 如果關鍵字 不在名字裡 且 不在敘述裡 -> 淘汰
                 if keyword not in f['name'] and keyword not in f['content']:
                     is_match = False
             
-            # --- B. 分類篩選 ---
             if is_match and selected_cats:
-                # 如果這道菜的分類，不在使用者勾選的名單裡 -> 淘汰
-                # (用 str() 轉成字串比對，避免資料庫是數字但網址是字串造成比對失敗)
                 if str(f.get('type')) not in selected_cats:
                     is_match = False
 
-            # --- C. 價格範圍篩選 ---
             if is_match:
                 try:
                     price = int(f.get('price', 0))
-                    # 檢查最低價
                     if min_price and min_price.isdigit():
                         if price < int(min_price):
                             is_match = False
-                    # 檢查最高價
                     if max_price and max_price.isdigit():
                         if price > int(max_price):
                             is_match = False
                 except:
-                    pass # 如果價格資料有問題不是數字，就跳過檢查
+                    pass 
 
-            # --- D. 倖存者加入名單 ---
+
             if is_match:
                 filtered_result.append(f)
         
-        # --- E. 排序邏輯 (對過濾後的結果排序) ---
+
         if sort_option == 'price_asc':
             # 價格：低 -> 高
             filtered_result.sort(key=lambda x: int(x.get('price', 0)))
@@ -136,13 +246,15 @@ def home():
                                user=session.get('user'), # 使用 .get()，沒登入就是 None，不會報錯
                                upd_food_data=None,       # 搜尋時通常不會同時在編輯訂單
                                category_map=CATEGORY_MAP, 
-                               request=request)
+                               request=request,
+                               allmodel=allmodel,
+                               ai_config=AI_CONFIG)
 
     
       
     if 'user' not in session :
         if(url == '1'):
-            return render_template("index.html",url=url,food_types= food_types,upd_food_data=upd_food_data ,category_map =CATEGORY_MAP )
+            return render_template("index.html",url=url,food_types= food_types,upd_food_data=upd_food_data ,category_map =CATEGORY_MAP,allmodel=allmodel,ai_config=AI_CONFIG)
             
         else:
             return  db.alert('未登入','/login')
@@ -209,7 +321,7 @@ def home():
 
 
 
-    food_types = db.sel(table.food_type)
+    # food_types = db.sel(table.food_type)
     users = db.sel(table.users)
     # print(session['user'])
     # print(upd_food_data)
@@ -218,7 +330,7 @@ def home():
     # print('目前網站有的食物類型：',food_types)
 
     # print(users)
-    return render_template("index.html", food=food,user= session['user'],url=url, food_types=food_types,users =users,upd_food_data=upd_food_data,category_map =CATEGORY_MAP )
+    return render_template("index.html", food=food,user= session['user'],url=url, food_types=food_types,users =users,upd_food_data=upd_food_data,category_map =CATEGORY_MAP ,allmodel=allmodel,ai_config=AI_CONFIG)
 
 
 # --- navbar ---
