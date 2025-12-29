@@ -15,7 +15,7 @@ conn = psycopg2.connect(
     password=url.password,  
     host=url.hostname,    
     port=url.port ,
-    sslmode="require"
+    sslmode="prefer"
 )
 
 cursor = conn.cursor()
@@ -163,4 +163,5 @@ def alert(content, where=""):
     </script>
 
     """
+
 
