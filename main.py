@@ -2,15 +2,7 @@
 from flask import Flask,render_template,request,redirect, url_for, session, Response
 from datetime import datetime
 from werkzeug.utils import secure_filename
-import db,random, string,os,time,cloudinary,cloudinary.uploader
-
-cloudinary.config(
-    cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME'),
-    api_key    = os.environ.get('CLOUDINARY_API_KEY'),
-    api_secret = os.environ.get('CLOUDINARY_API_SECRET'),
-    secure     = True
-)
-
+import db,random, string,os
 app = Flask(__name__, template_folder='', static_folder='')
 app.secret_key = "A" 
 length = 4
@@ -23,7 +15,7 @@ class Table:
     food_rating='food_rating'
 table = Table()
 #圖片上傳過濾
-UPLOAD_FOLDER = 'uploads/'
+UPLOAD_FOLDER = 'uploads' 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True) 
 
@@ -81,20 +73,22 @@ def home():
     food = db.sel(table.food)
     food_types = db.sel(table.food_type)
     if keyword or selected_cats or min_price or max_price or sort_option:
-        filtered_result = []
+        filtered_result = [] # 1. 建立一個空清單，用來裝篩選後的結果
 
         for f in food_types:
-            is_match = True 
+            is_match = True # 預設這道菜是符合的，下面開始找理由淘汰它
             
             # --- A. 關鍵字搜尋 ---
             if keyword:
                 keyword = keyword.strip()
+                # 如果關鍵字 不在名字裡 且 不在敘述裡 -> 淘汰
                 if keyword not in f['name'] and keyword not in f['content']:
                     is_match = False
             
             # --- B. 分類篩選 ---
             if is_match and selected_cats:
-                
+                # 如果這道菜的分類，不在使用者勾選的名單裡 -> 淘汰
+                # (用 str() 轉成字串比對，避免資料庫是數字但網址是字串造成比對失敗)
                 if str(f.get('type')) not in selected_cats:
                     is_match = False
 
@@ -130,13 +124,16 @@ def home():
         print()
         food_types = filtered_result
         return render_template("index.html", 
-                               url='1',                  
-                               food_types=food_types,    
-                               food=food,               
-                               user=session.get('user'),  
-                               upd_food_data=None,       
+                               url='1',                  # 搜尋結果通常是在看菜單 (url=1)
+                               food_types=food_types,    # 篩選後的菜單
+                               food=food,                # 訂單資料 (雖搜尋時用不到，但為了不報錯還是傳一下)
+                               user=session.get('user'), # 使用 .get()，沒登入就是 None，不會報錯
+                               upd_food_data=None,       # 搜尋時通常不會同時在編輯訂單
                                category_map=CATEGORY_MAP, 
                                request=request)
+
+    
+      
     if 'user' not in session :
         if(url == '1'):
             return render_template("index.html",url=url,food_types= food_types,upd_food_data=upd_food_data ,category_map =CATEGORY_MAP )
@@ -205,15 +202,18 @@ def home():
                 break
 
 
-    # print(food)
 
     food_types = db.sel(table.food_type)
     users = db.sel(table.users)
     # print(session['user'])
-    print(upd_food_data)
+    # print(upd_food_data)
+    print('目前登入者資訊：',session['user'])
+    print('使用者訂單：',food)
+    print('目前網站有的食物類型：',food_types)
 
     # print(users)
     return render_template("index.html", food=food,user= session['user'],url=url, food_types=food_types,users =users,upd_food_data=upd_food_data,category_map =CATEGORY_MAP )
+
 
 # --- navbar ---
 @app.route('/navbar')
@@ -223,7 +223,7 @@ def navbar():
 
 @app.route('/upd_del_done_food', methods=['POST'])
 def upd_del_done_food():
-    id = request.form.get('upd') or request.form.get('del') or request.form.get('done')or request.form.get('Nodone')
+    id = request.form.get('upd') or request.form.get('del') or request.form.get('done')or request.form.get('Nodone') or request.form.get('get')
     # print(request.form)
     if 'Nodone' in request.form:
         db.upd(table.food,{'done':0},{'id':id})   
@@ -252,6 +252,9 @@ def upd_del_done_food():
         
     if 'del' in request.form:
         db.delete(table.food, {"id": id})
+    if 'get' in request.form:
+        db.delete(table.food, {"id": id})
+        return db.alert('用餐愉快~','/?edit=5')
     return redirect(url_for('home', edit='5'))
 
 
@@ -353,6 +356,9 @@ def add_food():
     return redirect(url_for('home', edit='1'))
 
 
+
+
+
 @app.route('/add_foodtype', methods=['POST'])
 def add_foodtype():
     name = request.form.get('name')
@@ -381,6 +387,7 @@ def add_foodtype():
         db.ins("food_type", {
             "name": name,
             "price": int(price),
+            "count":0,
             "content": content,
             "img": filepath   ,
             "rating_ids": [],
@@ -399,6 +406,7 @@ def UpdAndDelfoodType():
     if 'upd' in request.form:
         name = request.form.get('name')
         price = request.form.get('price')
+        count = request.form.get('count')
         content = request.form.get('content')
         category = request.form.get('category')
       
@@ -407,7 +415,8 @@ def UpdAndDelfoodType():
             "name": name,
             "price": int(price),
             "content": content,
-            "type": category
+            "type": category,
+            "count":count
         }
 
         file = request.files.get('img')
@@ -551,13 +560,4 @@ def DelTable():
     return redirect(url_for('home'))
 
 if __name__=='__main__':
-
     app.run(debug = True)
-
-
-
-
-
-
-
-
