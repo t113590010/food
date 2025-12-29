@@ -52,7 +52,7 @@
                                                 <h5>剩餘存貨:{{s.count}}</h5>
                                                 <h5>單價: {{ s.price }}元</h5>
                                                 <label for="count_{{ s.id }}">數量</label>
-                                                <input type="number" min="0" max="{s.count}" class="form-control count" 
+                                                <input type="number" min="0" max="{{s.count}}" class="form-control count" 
                                                     data-price="{{ s.price }}" name="count[{{ s.id }}]"
                                                     value="{% if upd_food_data and s.id in upd_food_data['food_type_id'] -%}{{ upd_food_data['food_counts'][upd_food_data['food_type_id'].index(s.id)] -}}{% else %}0{% endif %}"
                                                     required>

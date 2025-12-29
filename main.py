@@ -72,6 +72,12 @@ def home():
     upd_food_data = None
     food = db.sel(table.food)
     food_types = db.sel(table.food_type)
+    food_type_counts = 0
+    food_counts = 0
+ 
+
+    
+    
     if keyword or selected_cats or min_price or max_price or sort_option:
         filtered_result = [] # 1. 建立一個空清單，用來裝篩選後的結果
 
@@ -121,8 +127,8 @@ def home():
         else:
             # 預設：最新上架 (假設 ID 越大越新)
             filtered_result.sort(key=lambda x: x['id'], reverse=True)
-        print()
         food_types = filtered_result
+
         return render_template("index.html", 
                                url='1',                  # 搜尋結果通常是在看菜單 (url=1)
                                food_types=food_types,    # 篩選後的菜單
@@ -160,7 +166,7 @@ def home():
                 print('測試')
                 f['user_name'] = session['user']['name']
                 f['user_email'] =session['user']['email']
-    print(food)
+    # print(food)
 
 
 
@@ -207,9 +213,9 @@ def home():
     users = db.sel(table.users)
     # print(session['user'])
     # print(upd_food_data)
-    print('目前登入者資訊：',session['user'])
-    print('使用者訂單：',food)
-    print('目前網站有的食物類型：',food_types)
+    # print('目前登入者資訊：',session['user'])
+    # print('使用者訂單：',food)
+    # print('目前網站有的食物類型：',food_types)
 
     # print(users)
     return render_template("index.html", food=food,user= session['user'],url=url, food_types=food_types,users =users,upd_food_data=upd_food_data,category_map =CATEGORY_MAP )
@@ -223,38 +229,97 @@ def navbar():
 
 @app.route('/upd_del_done_food', methods=['POST'])
 def upd_del_done_food():
-    id = request.form.get('upd') or request.form.get('del') or request.form.get('done')or request.form.get('Nodone') or request.form.get('get')
-    # print(request.form)
+    id = request.form.get('upd') or request.form.get('del') or request.form.get('done') or request.form.get('Nodone') or request.form.get('get')
+
     if 'Nodone' in request.form:
-        db.upd(table.food,{'done':0},{'id':id})   
+        db.upd(table.food, {'done': 0}, {'id': id})
+
     if 'done' in request.form:
-        db.upd(table.food,{'done':1},{'id':id})   
+        db.upd(table.food, {'done': 1}, {'id': id})
+
     if 'upd' in request.form:
+        old_order_list = db.sel(table.food, {'id': id})
+        if not old_order_list: return db.alert("訂單不存在", "/")
+        old_order = old_order_list[0]
+
+        old_map = {}
+        old_ids = old_order.get('food_type_id', [])
+        old_counts = old_order.get('food_counts', [])
+        if not isinstance(old_ids, list): old_ids = [old_ids]
+        if not isinstance(old_counts, list): old_counts = [old_counts]
+
+        for i in range(len(old_ids)):
+            old_map[int(old_ids[i])] = int(old_counts[i])
+
         counts_raw = {k[6:-1]: int(v[0]) for k, v in request.form.to_dict(flat=False).items() if k.startswith('count[')}
 
-        food_type_ids = [int(fid) for fid in counts_raw.keys()]
-        counts = list(counts_raw.values())
-        total_price = sum(
-            db.sel(table.food_type, {'id': int(fid)})[0]['price'] * qty
-            for fid, qty in zip(food_type_ids, counts)
-        )
+        new_food_type_ids = []
+        new_counts = []
+        total_price = 0
 
-        # 更新資料庫
+        for fid_str, new_qty in counts_raw.items():
+            fid = int(fid_str)
+            new_qty = int(new_qty)
+            old_qty = old_map.get(fid, 0)
+            diff = new_qty - old_qty
+
+            if diff != 0:
+                ft_data = db.sel(table.food_type, {'id': fid})
+                if ft_data:
+                    current_stock = int(ft_data[0].get('count', 0))
+
+                    if diff > 0 and current_stock < diff:
+                        return db.alert(f"庫存不足！無法增加 {ft_data[0]['name']} 的數量", f"/?upd={id}")
+
+                    new_stock = current_stock - diff
+                    db.upd(table.food_type, {'count': new_stock}, {'id': fid})
+
+            ft_info = db.sel(table.food_type, {'id': fid})
+            if ft_info:
+                price = ft_info[0]['price']
+                total_price += price * new_qty
+
+            new_food_type_ids.append(fid)
+            new_counts.append(new_qty)
+
         update_data = {
-            'food_type_id': food_type_ids,
-            'food_counts': counts,
+            'food_type_id': new_food_type_ids,
+            'food_counts': new_counts,
             'total': total_price
         }
 
-        db.upd(table.food,update_data,{'id':id})   
-        # print(update_data)
+        db.upd(table.food, update_data, {'id': id})
         return redirect(url_for('home', upd=id))
-        
+
     if 'del' in request.form:
+        target_order = db.sel(table.food, {'id': id})
+        if target_order:
+            order = target_order[0]
+            o_ids = order.get('food_type_id', [])
+            o_counts = order.get('food_counts', [])
+
+            if not isinstance(o_ids, list): o_ids = [o_ids]
+            if not isinstance(o_counts, list): o_counts = [o_counts]
+
+            for i in range(len(o_ids)):
+                try:
+                    f_id = int(o_ids[i])
+                    qty = int(o_counts[i])
+
+                    ft_data = db.sel(table.food_type, {'id': f_id})
+                    if ft_data:
+                        curr_stock = int(ft_data[0].get('count', 0))
+                        db.upd(table.food_type, {'count': curr_stock + qty}, {'id': f_id})
+                except:
+                    pass
+
         db.delete(table.food, {"id": id})
+        return redirect(url_for('home', edit='5'))
+
     if 'get' in request.form:
         db.delete(table.food, {"id": id})
-        return db.alert('用餐愉快~','/?edit=5')
+        return db.alert('用餐愉快~', '/?edit=5')
+
     return redirect(url_for('home', edit='5'))
 
 
@@ -266,6 +331,30 @@ def UpdAndDelFoods():
         return redirect(url_for('home', upd=id))
         
     if 'del' in request.form:
+        target_order_list = db.sel(table.food, {'id': id})
+        
+        if target_order_list:
+            order = target_order_list[0]
+            
+            o_ids = order.get('food_type_id', [])
+            o_counts = order.get('food_counts', [])
+     
+            if not isinstance(o_ids, list): o_ids = [o_ids]
+            if not isinstance(o_counts, list): o_counts = [o_counts]
+            for i in range(len(o_ids)):
+                try:
+                    f_id = int(o_ids[i])
+                    qty = int(o_counts[i])
+                    ft_data = db.sel(table.food_type, {'id': f_id})
+                    if ft_data:
+                        current_stock = int(ft_data[0].get('count', 0))
+                        restore_stock = current_stock + qty 
+                        db.upd(table.food_type, {'count': restore_stock}, {'id': f_id})
+                     
+                        
+                except Exception as e:
+                    print(f"還原庫存失敗: {e}")
+                    continue
         db.delete(table.food, {"id": id})
 
     return redirect(url_for('home', edit='5'))
@@ -297,7 +386,7 @@ def tmp_food():
             continue
 
         if qty <= 0:
-            continue
+            qty=0
 
         food_type_data = db.sel(table.food_type, {'id': int(food_id_str)})
         if not food_type_data:
@@ -352,6 +441,19 @@ def add_food():
         'food_type_id':order['food_type_ids'],
         'total':order['total'],
     })
+    ids = order['food_type_ids']
+    buy_counts = order['counts']
+
+    for i in range(len(ids)):
+        f_id = ids[i]
+        qty = buy_counts[i] 
+        ft_data = db.sel(table.food_type, {'id': f_id})
+        
+        if ft_data:
+            current_stock = int(ft_data[0].get('count', 0))
+            new_stock = current_stock - qty
+            if new_stock < 0: new_stock = 0
+            db.upd(table.food_type, {'count': new_stock}, {'id': f_id})
     session.pop('tmp_order', None)
     return redirect(url_for('home', edit='1'))
 
