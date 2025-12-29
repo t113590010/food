@@ -9,7 +9,7 @@ from google import genai
 app = Flask(__name__, template_folder='', static_folder='')
 app.secret_key = "A" 
 length = 4
-api_key = os.environ.get("GEMINI_API_KEY")
+api_key = os.environ.get("AI_API")
 AI_CONFIG = {
     'current_model': 'gemini-2.5-flash', # 預設值
     'models': []
@@ -774,4 +774,5 @@ def DelTable():
     return redirect(url_for('home'))
 
 if __name__=='__main__':
+
     app.run(debug = True)
