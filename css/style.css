@@ -10,44 +10,50 @@
     height: 100%;
 }
 
-.login_height{
+.login_height {
     height: 85vh;
 }
 
-.pre_img{
-    width: 90%;       
+.pre_img {
+    width: 90%;
     aspect-ratio: 1 / 1;
     object-fit: cover;
 }
-.pre_img_sm{
-    width: 90%;       
+
+.pre_img_sm {
+    width: 90%;
     aspect-ratio: 1 / 1;
     object-fit: cover;
 }
 
 /* --- 整體佈局 Layout --- */
 .main-container {
-    display: flex; /* 讓左右橫排 */
+    display: flex;
+    /* 讓左右橫排 */
     max_width: 1200px;
     margin: 0 auto;
     padding: 20px;
-    gap: 30px; /* 左右之間的間距 */
-    align-items: flex-start; /* 讓側邊欄不會被拉長 */
+    gap: 30px;
+    /* 左右之間的間距 */
+    align-items: flex-start;
+    /* 讓側邊欄不會被拉長 */
 }
 
 /* --- 左側篩選欄 Sidebar --- */
 .filter-sidebar {
-    width: 250px; /* 固定寬度 */
-    flex-shrink: 0; /* 不要被擠壓 */
+    width: 250px;
+    /* 固定寬度 */
+    flex-shrink: 0;
+    /* 不要被擠壓 */
     background: #fff;
     padding: 20px;
     border-radius: 12px;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
     border: 1px solid #eee;
-    
+
     /* 讓它捲動時黏在上面 (Optional) */
     position: sticky;
-    top: 20px; 
+    top: 20px;
 }
 
 .filter-sidebar h3 {
@@ -69,15 +75,18 @@
 }
 
 /* Checkbox & Radio 樣式 */
-.checkbox-item, .radio-item {
-    display: block; /* 讓每個選項換行 */
+.checkbox-item,
+.radio-item {
+    display: block;
+    /* 讓每個選項換行 */
     margin-bottom: 8px;
     cursor: pointer;
     color: #555;
     font-size: 0.95rem;
 }
 
-.checkbox-item input, .radio-item input {
+.checkbox-item input,
+.radio-item input {
     margin-right: 8px;
 }
 
@@ -122,7 +131,8 @@
 
 /* --- 右側內容區 Main --- */
 .content-area {
-    flex-grow: 1; /* 佔滿剩餘空間 */
+    flex-grow: 1;
+    /* 佔滿剩餘空間 */
 }
 
 /* 上方搜尋框 */
@@ -145,7 +155,8 @@
 
 .search-form button {
     padding: 0 25px;
-    background-color: #ff6b6b; /* 主色調 */
+    background-color: #ff6b6b;
+    /* 主色調 */
     color: white;
     border: none;
     border-radius: 8px;
@@ -157,7 +168,7 @@
 .food-grid {
     display: grid;
     /* 自動調整欄數：最小 220px */
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
     gap: 20px;
 }
 
@@ -166,7 +177,7 @@
     background: white;
     border-radius: 10px;
     overflow: hidden;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s;
 }
 
@@ -176,10 +187,142 @@
 
 .card-img {
     width: 100%;
-    aspect-ratio: 1/1; /* 保持正方形 */
+    aspect-ratio: 1/1;
+    /* 保持正方形 */
     object-fit: cover;
 }
 
 .card-info {
     padding: 15px;
+}
+
+#ai-chat-btn {
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    width: 60px;
+    height: 60px;
+    background-color: #4CAF50;
+    /* 綠色 */
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    line-height: 60px;
+    font-size: 30px;
+    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+    z-index: 9999;
+    transition: transform 0.3s;
+}
+
+#ai-chat-btn:hover {
+    transform: scale(1.1);
+}
+
+/* 聊天視窗本體 */
+#ai-chat-window {
+    display: none;
+    /* 預設隱藏 */
+    position: fixed;
+    bottom: 100px;
+    right: 30px;
+    width: 350px;
+    height: 500px;
+    background-color: white;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.2);
+    z-index: 9999;
+    flex-direction: column;
+    overflow: hidden;
+    border: 1px solid #ddd;
+}
+
+/* 標題列 */
+.chat-header {
+        background-color: #4CAF50;
+        color: white;
+        padding: 15px;
+        font-weight: bold;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: move;     
+        user-select: none; 
+    }
+
+.close-btn {
+    cursor: pointer;
+    font-size: 20px;
+}
+
+/* 訊息區域 */
+.chat-body {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    background-color: #f9f9f9;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* 訊息泡泡 */
+.message {
+    max-width: 80%;
+    padding: 10px 15px;
+    border-radius: 15px;
+    font-size: 14px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.ai-message {
+    background-color: #e0e0e0;
+    align-self: flex-start;
+    border-bottom-left-radius: 2px;
+}
+
+.user-message {
+    background-color: #4CAF50;
+    color: white;
+    align-self: flex-end;
+    border-bottom-right-radius: 2px;
+}
+
+/* 輸入區域 */
+.chat-footer {
+    padding: 10px;
+    border-top: 1px solid #ddd;
+    display: flex;
+    gap: 10px;
+    background-color: white;
+}
+
+#chat-input {
+    flex: 1;
+    padding: 8px;
+    border: 1px solid #ccc;
+    border-radius: 20px;
+    outline: none;
+}
+
+.chat-footer button {
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 20px;
+    cursor: pointer;
+}
+
+.chat-footer button:hover {
+    background-color: #45a049;
+}
+
+/* 載入中動畫 */
+.typing {
+    font-style: italic;
+    color: #888;
+    font-size: 12px;
+    margin-left: 10px;
 }
