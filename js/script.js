@@ -40,7 +40,7 @@ function index() {
         document.getElementById('total').textContent = total;
     }
 
-    if (getURL('edit') == '1' || getURL('upd') == '5') {
+    if (getURL('edit') == '1' || getURL('upd') ) {
         calculateTotal()
     }
 
@@ -127,4 +127,5 @@ function login() {
         captchaImg.src = captchaUrl + "?t=" + new Date().getTime();
     });
 }
+
 
