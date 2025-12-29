@@ -11,7 +11,7 @@ app.secret_key = "A"
 length = 4
 api_key = os.environ.get("AI_API")
 AI_CONFIG = {
-    'current_model': 'gemini-2.5-flash', # 預設值
+    'current_model': 'gemini-2.5-flash-lite', # 預設值
     'models': []
 }
 #資歷表(新資料表在這引入 之後都用table.名稱 方便管理)
@@ -92,7 +92,7 @@ def get_google_models():
 
     except Exception as e:
         print(f"抓取模型失敗: {e}")
-        return [{'id': 'gemini-2.5-flash', 'name': 'gemini-2.5-flash'}]
+        return [{'id': 'gemini-2.5-flash-lite', 'name': 'gemini-2.5-flash-lite'}]
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -776,3 +776,4 @@ def DelTable():
 if __name__=='__main__':
 
     app.run(debug = True)
+
