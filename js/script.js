@@ -9,7 +9,7 @@ document.addEventListener("DOMContentLoaded", () => {
     switch (page) {
         case "":
             index()
-            break   
+            break
         case "login":
             login()
             break
@@ -34,7 +34,105 @@ function index() {
     const sendBtn = document.getElementById('chat-send-btn');
     const chatInput = document.getElementById('chat-input');
 
+
     // --- 事件監聽 ---
+    const amountInput = document.getElementById('customAmount');
+
+    // 2. 抓取所有金額按鈕 (用 Class)
+    const buttons = document.querySelectorAll('.amount-btn');
+    if (getURL('edit') == '7') {
+
+        buttons.forEach(btn => {
+            btn.addEventListener('click', function () {
+
+                const value = this.getAttribute('data-amount');
+
+                amountInput.value = value;
+
+                buttons.forEach(b => b.classList.remove('selected'));
+
+                this.classList.add('selected');
+            });
+        });
+
+
+        amountInput.addEventListener('input', function () {
+            buttons.forEach(btn => btn.classList.remove('selected'));
+        });
+    }
+
+    const bankInput = document.getElementById('inputBank');
+    const numInput = document.getElementById('inputNum');
+
+    const displayBank = document.getElementById('displayBank');
+    const displayNum = document.getElementById('displayNum');
+    const cardLogo = document.getElementById('cardLogo');
+
+    // 2. 定義完整的卡片規則 (Regex)
+    const cardTypes = [
+        { name: 'VISA', color: '#ffffff', pattern: /^4/ },
+        { name: 'MasterCard', color: '#ff9f00', pattern: /^(5[1-5]|2[2-7])/ },
+        { name: 'Amex', color: '#2e77bc', pattern: /^3[47]/ }, // 美國運通
+        { name: 'JCB', color: '#006600', pattern: /^35/ },
+        { name: 'UnionPay', color: '#00a1e9', pattern: /^62/ }, // 銀聯
+        { name: 'Diners', color: '#888888', pattern: /^3(?:0[0-5]|[689])/ },
+        { name: 'Discover', color: '#ff6600', pattern: /^6(?:011|5)/ },
+        { name: 'Maestro', color: '#004c97', pattern: /^(5018|5020|5038|6304|6759|676[1-3])/ }
+    ];
+
+    function updateCardView() {
+        // --- 更新銀行名稱 ---
+        if (bankInput && displayBank) {
+            displayBank.innerText = bankInput.value || 'BANK NAME';
+        }
+
+        // --- 更新卡號 (核心邏輯) ---
+        if (numInput && displayNum) {
+
+            let rawVal = numInput.value.replace(/\D/g, '');
+
+
+            if (rawVal.length > 16) {
+                rawVal = rawVal.substring(0, 16);
+            }
+
+            let formatted = rawVal.match(/.{1,4}/g)?.join(' ') || rawVal;
+
+
+            if (numInput.value !== formatted) {
+                numInput.value = formatted;
+            }
+
+            // E. 更新預覽圖的文字 (如果空了就顯示預設符號)
+            displayNum.innerText = formatted || '#### #### #### ####';
+
+            // F. 判斷卡別 Logo
+            if (cardLogo) {
+                let match = null;
+                for (let card of cardTypes) {
+                    if (card.pattern.test(rawVal)) {
+                        match = card;
+                        break;
+                    }
+                }
+
+                if (match) {
+                    cardLogo.innerText = match.name;
+                    cardLogo.style.color = match.color;
+                    cardLogo.style.opacity = '1';
+                } else {
+                    cardLogo.innerText = 'CARD';
+                    cardLogo.style.color = '#fff';
+                    cardLogo.style.opacity = '0.7';
+                }
+            }
+        }
+    }
+
+    // 3. 綁定監聽事件
+    if (bankInput) bankInput.addEventListener('input', updateCardView);
+    if (numInput) numInput.addEventListener('input', updateCardView);
+
 
     chatBtn.addEventListener('click', function () {
         if (chatWindow.style.display === 'none' || chatWindow.style.display === '') {
@@ -53,7 +151,7 @@ function index() {
 
     sendBtn.addEventListener('click', sendMessage);
 
- 
+
     chatInput.addEventListener('keypress', function (event) {
         if (event.key === 'Enter') {
             sendMessage();
@@ -87,7 +185,7 @@ function index() {
 
             const data = await response.json();
 
-            chatBody.removeChild(loadingDiv); 
+            chatBody.removeChild(loadingDiv);
 
             if (data.reply) {
                 appendMessage(data.reply, 'ai-message');
@@ -116,7 +214,7 @@ function index() {
     let isDragging = false;
     let offsetX, offsetY;
 
-    const chatHeader = document.querySelector('.chat-header'); 
+    const chatHeader = document.querySelector('.chat-header');
 
     chatHeader.addEventListener('mousedown', function (e) {
 
@@ -147,10 +245,10 @@ function index() {
         chatWindow.style.right = 'auto';
     });
 
- 
+
     document.addEventListener('mouseup', function () {
         isDragging = false;
-        chatWindow.style.opacity = '1'; 
+        chatWindow.style.opacity = '1';
     });
 
     function calculateTotal() {

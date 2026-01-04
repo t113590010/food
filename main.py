@@ -9,7 +9,9 @@ from google import genai
 app = Flask(__name__, template_folder='', static_folder='')
 app.secret_key = "A" 
 length = 4
-api_key = os.environ.get("AI_API")
+api_key = "AIzaSyATbL7jDB9k9p5UIiBqFNoMsvVt2_gsnus"
+
+# api_key = os.environ.get("GEMINI_API_KEY")
 AI_CONFIG = {
     'current_model': 'gemini-2.5-flash-lite', # 預設值
     'models': []
@@ -92,7 +94,7 @@ def get_google_models():
 
     except Exception as e:
         print(f"抓取模型失敗: {e}")
-        return [{'id': 'gemini-2.5-flash-lite', 'name': 'gemini-2.5-flash-lite'}]
+        return [{'id': 'gemini-2.5-flash', 'name': 'gemini-2.5-flash'}]
 
 def json_serial(obj):
     """JSON serializer for objects not serializable by default json code"""
@@ -132,6 +134,7 @@ def api_chat():
 
             orders = db.sel(table.food, {'user_id': user_info['id']})
             context_info += f"【登入者歷史訂單紀錄】: {json.dumps(orders, default=json_serial, ensure_ascii=False)}\n"
+            # print(f"【登入者歷史訂單紀錄】: {json.dumps(orders, default=json_serial, ensure_ascii=False)}\n")
         else:
             context_info += "【目前登入者】: 遊客 (未登入)\n"
 
@@ -144,6 +147,7 @@ def api_chat():
         1. 餐廳完整菜單 (包含庫存、圖片路徑、價格、描述等所有欄位)。
         2. 使用者詳細個資 (如果已登入)。
         3. 使用者的歷史訂單紀錄。
+        4.訂單的done(done=1代表已完成但使用者未領取)，不需要跟使用者說done=1
 
         請靈活運用這些資料，如果使用者問關於他自己的資訊(例如Email、等級)或是訂單細節，請直接從資料中查找。
         
@@ -191,7 +195,9 @@ def home():
     allmodel = get_google_models()
 
     upd_food_url = request.args.get('upd')
+    upd_card_url = request.args.get('upd_card')
     upd_food_data = None
+    upd_card_data = None
     food = db.sel(table.food)
     food_types = db.sel(table.food_type)
     
@@ -286,7 +292,7 @@ def home():
         upd_food_url = int(upd_food_url)
         for f in food:
             if f['id'] == upd_food_url:
-                # --- 加工資料 ---
+                # --- 加工資料 (使用者資訊) ---
                 if(session['user']['level']==1):
                     user_data = db.sel(table.users, {'id': f['user_id']})
                     f['user_name'] = user_data[0]['name']
@@ -299,12 +305,33 @@ def home():
                 f['food_names'] = []
                 f['total_price'] = 0
 
-                # 確保 food_type_id 是 list
-                food_type_ids = f['food_type_id']
-                if not isinstance(food_type_ids, list):
-                    food_type_ids = [food_type_ids]
+                # --- 1. 取得這張單原本買的 ID 和 數量 ---
+                old_ids = f.get('food_type_id', [])
+                old_counts = f.get('food_counts', [])
+                
+                # 確保是 List
+                if not isinstance(old_ids, list): old_ids = [old_ids]
+                if not isinstance(old_counts, list): old_counts = [old_counts]
 
-                for fid in food_type_ids:
+                # 建立 {商品ID: 數量} 對照表
+                qty_map = {}
+                for i in range(len(old_ids)):
+                    try:
+                        qty_map[int(old_ids[i])] = int(old_counts[i])
+                    except: pass
+
+                # --- 2. ★關鍵修改：把佔用的庫存加回去 food_types 列表 ---
+                # food_types 是傳給 index.html 顯示菜單用的
+                for ft in food_types:
+                    if ft['id'] in qty_map:
+                        # 顯示庫存 = 資料庫現有 + 我手上佔用的
+                        ft['count'] = int(ft.get('count', 0)) + qty_map[ft['id']]
+
+                # --- 3. 處理訂單內容顯示 (修正總價計算) ---
+                for i in range(len(old_ids)):
+                    fid = int(old_ids[i])
+                    qty = int(old_counts[i])
+
                     food_type_data = db.sel(table.food_type, {'id': fid})
                     if food_type_data:
                         ft = food_type_data[0]
@@ -313,36 +340,192 @@ def home():
                             'unit_price': ft['price']
                         })
                         f['food_names'].append(ft['name'])
-                        f['total_price'] += ft['price']
+                        # 修正：總價要乘上數量
+                        f['total_price'] += ft['price'] * qty
 
                 f['food_names'] = ", ".join(f['food_names'])
                 upd_food_data = f
                 break
 
+    
+    if (upd_card_url or url=='7' )and 'user' in session :
+        url_id = upd_card_url
+        if url=='7':
+            url_id = session['user']['id']
+    
+        target_user_list = db.sel(table.users, {'id': url_id})
 
+        
+        if target_user_list:
+        
+            found_user = target_user_list[0]
+   
+            wallet = found_user.get('card_data') or []
+            if isinstance(wallet, str):
+                # import json
+                try: wallet = json.loads(wallet)
+                except: wallet = []
+            if wallet is None: wallet = []
+            
+            found_user['card_data'] = wallet 
 
-    # food_types = db.sel(table.food_type)
+    
+            upd_card_data = found_user
+
     users = db.sel(table.users)
     # print(session['user'])
     # print(upd_food_data)
     # print('目前登入者資訊：',session['user'])
     # print('使用者訂單：',food)
     # print('目前網站有的食物類型：',food_types)
-
+    # print('銀行卡',session.get('user')['card_data'])
+    print('銀行卡',url,upd_card_data)
     # print(users)
-    return render_template("index.html", food=food,user= session['user'],url=url, food_types=food_types,users =users,upd_food_data=upd_food_data,category_map =CATEGORY_MAP ,allmodel=allmodel,ai_config=AI_CONFIG)
-
+    # return render_template("index.html", food=food,user= session['user'],url=url, food_types=food_types,users =users,upd_food_data=upd_food_data,category_map =CATEGORY_MAP ,allmodel=allmodel,ai_config=AI_CONFIG)
+    return render_template("index.html", 
+                           food=food,
+                           user=session.get('user'), 
+                           url=url, 
+                           food_types=food_types, 
+                           users=users, 
+                           upd_food_data=upd_food_data,
+                           
+                           upd_card_data=upd_card_data, 
+                           
+                           category_map=CATEGORY_MAP, 
+                           request=request,
+                           allmodel=allmodel,
+                           ai_config=AI_CONFIG)
 
 # --- navbar ---
 @app.route('/navbar')
 def navbar():
     return render_template('navbar.html')
 
+@app.route('/api/topup', methods=['POST'])
+def api_topup():
+    # 1. 拿資料
+    amount = int(request.form.get('amount'))
+    user_id = session['user']['id']
+
+ 
+    db.upd(table.users,{'cash':(session['user']['cash']+ amount)},{'id':user_id})
+
+    session['user']['cash'] += amount
+    session.modified = True
+
+    return redirect('/?edit=7')
+
+
+@app.route('/api/del_card', methods=['POST'])
+def del_card():
+    # 1. 安全檢查：確認有無登入
+    if 'user' not in session:
+        return db.alert('請先登入', '/')
+
+    # 2. 接收前端傳來的資料
+    target_user_id = request.form.get('target_user_id')
+    card_number_to_del = request.form.get('card_number') 
+
+    if not target_user_id or not card_number_to_del:
+        return db.alert('資料傳輸錯誤', '/')
+
+    # 3. 撈取該位會員資料
+    user_list = db.sel(table.users, {'id': target_user_id})
+    if not user_list:
+        return db.alert('找不到該會員', '/')
+
+    target_user = user_list[0]
+    
+    # 4. 讀取並解析目前的卡片列表 (JSON -> List)
+    current_cards = target_user.get('card_data')
+    
+    # 防呆：如果資料庫是 NULL 或格式錯誤，就當作空陣列
+    if current_cards is None:
+        current_cards = []
+    elif isinstance(current_cards, str):
+        try: 
+            current_cards = json.loads(current_cards)
+        except: 
+            current_cards = []
+    
+    if not isinstance(current_cards, list):
+        current_cards = []
+
+    new_card_list = []
+
+    target_clean = str(card_number_to_del).replace(" ", "")
+    
+    for card in current_cards:
+        current_clean = str(card.get('card_number', '')).replace(" ", "")
+
+        if current_clean != target_clean:
+            new_card_list.append(card)
+
+    db.upd(table.users, 
+           {'card_data': json.dumps(new_card_list)}, 
+           {'id': target_user_id})
+
+    return redirect(f'/?upd_card={target_user_id}')
+
+@app.route('/api/add_card', methods=['POST'])
+def add_card():
+    if 'user' not in session:
+        return db.alert('請先登入', '/')
+
+    target_user_id = request.form.get('target_user_id')
+    bank_name = request.form.get('bank_name')
+    card_number = request.form.get('card_number')
+
+    if not target_user_id or not bank_name or not card_number:
+        return db.alert('資料不完整', '/')
+
+    user_list = db.sel(table.users, {'id': target_user_id})
+    if not user_list:
+        return db.alert('找不到該會員', '/')
+    
+    target_user = user_list[0]
+    
+    current_cards = target_user.get('card_data')
+    if current_cards is None:
+        current_cards = []
+    elif isinstance(current_cards, str):
+        try: 
+            current_cards = json.loads(current_cards)
+        except: 
+            current_cards = []
+    
+    if not isinstance(current_cards, list): 
+        current_cards = []
+
+    clean_new_number = card_number.replace(" ", "")
+
+    for card in current_cards:
+        old_number = card.get('card_number', '')
+        clean_old_number = str(old_number).replace(" ", "")
+
+        if clean_old_number == clean_new_number:
+            return db.alert('這張卡片已經綁定過了！', f'/?upd_card={target_user_id}')
+
+    new_card = {
+        'bank_name': bank_name,
+        'card_number': card_number,
+        'added_date': datetime.now().strftime('%Y-%m-%d')
+    }
+
+    current_cards.append(new_card)
+
+    db.upd(table.users, 
+           {'card_data': json.dumps(current_cards)}, 
+           {'id': target_user_id})
+
+    return redirect(f'/?upd_card={target_user_id}')
 
 @app.route('/upd_del_done_food', methods=['POST'])
 def upd_del_done_food():
     id = request.form.get('upd') or request.form.get('del') or request.form.get('done') or request.form.get('Nodone') or request.form.get('get')
-
+    old_order_list = db.sel(table.food, {'id': id})
+    user = db.sel(table.users,{'id':old_order_list[0]['user_id']})[0]
     if 'Nodone' in request.form:
         db.upd(table.food, {'done': 0}, {'id': id})
 
@@ -350,7 +533,6 @@ def upd_del_done_food():
         db.upd(table.food, {'done': 1}, {'id': id})
 
     if 'upd' in request.form:
-        old_order_list = db.sel(table.food, {'id': id})
         if not old_order_list: return db.alert("訂單不存在", "/")
         old_order = old_order_list[0]
 
@@ -394,6 +576,22 @@ def upd_del_done_food():
             new_food_type_ids.append(fid)
             new_counts.append(new_qty)
 
+
+        old_total_price = int(old_order.get('total', 0))
+        price_diff = total_price - old_total_price 
+        current_cash = user['cash']
+
+        if price_diff > 0 and current_cash < price_diff:
+            return db.alert(f"餘額不足！修改訂單需要補差額 ${price_diff}，您只有 ${current_cash}", f"/?upd={id}")
+
+        final_cash = current_cash - price_diff
+        
+        # 更新 DB 和 Session
+        db.upd(table.users, {'cash': final_cash}, {'id': user['id']})
+        if (user['id'] == session['user']['id']):
+            session['user']['cash'] = final_cash
+            session.modified = True
+
         update_data = {
             'food_type_id': new_food_type_ids,
             'food_counts': new_counts,
@@ -407,6 +605,13 @@ def upd_del_done_food():
         target_order = db.sel(table.food, {'id': id})
         if target_order:
             order = target_order[0]
+            refund_money = int(order.get('total', 0))
+            current_cash =  user['cash']
+  
+            db.upd(table.users, {'cash': current_cash + refund_money}, {'id': user['id']})
+            if(user['id']==session['user']['id']):
+                session['user']['cash'] += refund_money
+                session.modified = True
             o_ids = order.get('food_type_id', [])
             o_counts = order.get('food_counts', [])
 
@@ -444,10 +649,18 @@ def UpdAndDelFoods():
         
     if 'del' in request.form:
         target_order_list = db.sel(table.food, {'id': id})
+        user = db.sel(table.users,{'id':target_order_list[0]['user_id']})[0]
         
         if target_order_list:
             order = target_order_list[0]
-            
+            refund_amount = int(order.get('total', 0)) 
+            current_cash = user['cash']
+            final_cash = current_cash + refund_amount
+            db.upd(table.users, {'cash': final_cash}, {'id': user['id']})
+            if (user['id'] == session['user']['id']):
+                session['user']['cash'] = final_cash
+                session.modified = True
+
             o_ids = order.get('food_type_id', [])
             o_counts = order.get('food_counts', [])
      
@@ -516,7 +729,11 @@ def tmp_food():
         # print('成功')
         return  db.alert('未選擇餐點','/')
 
-    
+    current_cash = int(user.get('cash', 0))
+
+    if total > current_cash:
+        diff = total - current_cash
+        return db.alert(f'餘額不足！總共需要 ${total}，您只有 ${current_cash} (還差 ${diff})', '/?edit=7')
 
     session['tmp_order'] = {
         "food_type_ids": ids,
@@ -553,6 +770,16 @@ def add_food():
         'food_type_id':order['food_type_ids'],
         'total':order['total'],
     })
+    total_cost = int(order['total'])
+    current_cash = int(session['user']['cash'])
+    final_cash = current_cash - total_cost
+
+
+    db.upd(table.users, {'cash': final_cash}, {'id': user['id']})
+
+
+    session['user']['cash'] = final_cash
+    session.modified = True
     ids = order['food_type_ids']
     buy_counts = order['counts']
 
@@ -774,6 +1001,4 @@ def DelTable():
     return redirect(url_for('home'))
 
 if __name__=='__main__':
-
     app.run(debug = True)
-

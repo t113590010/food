@@ -239,16 +239,16 @@
 
 /* 標題列 */
 .chat-header {
-        background-color: #4CAF50;
-        color: white;
-        padding: 15px;
-        font-weight: bold;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        cursor: move;     
-        user-select: none; 
-    }
+    background-color: #4CAF50;
+    color: white;
+    padding: 15px;
+    font-weight: bold;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: move;
+    user-select: none;
+}
 
 .close-btn {
     cursor: pointer;
@@ -326,3 +326,161 @@
     font-size: 12px;
     margin-left: 10px;
 }
+
+/* 卡片容器優化 */
+.bank-card-container {
+    border: none;
+    border-radius: 20px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+    overflow: hidden;
+}
+
+.bank-card-header {
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    color: white;
+    padding: 20px;
+    border-bottom: none;
+}
+
+/* 🔥 純 CSS 畫出來的擬真信用卡 */
+.credit-card-visual {
+    width: 100%;
+    max-width: 350px;
+    height: 200px;
+    margin: 0 auto 25px auto;
+    background: linear-gradient(45deg, #111111, #333333);
+    border-radius: 15px;
+    color: #fff;
+    padding: 25px;
+    position: relative;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s ease;
+}
+
+.credit-card-visual:hover {
+    transform: translateY(-5px);
+}
+
+/* 模擬金屬晶片 */
+.chip {
+    width: 50px;
+    height: 35px;
+    background: linear-gradient(135deg, #fceabb 0%, #f8b500 100%);
+    border-radius: 5px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 晶片紋路 */
+.chip::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.chip::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.card-number-display {
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 1.4rem;
+    letter-spacing: 2px;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 2px rgba(0, 0, 0, 0.5);
+}
+
+.card-info-display {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #ccc;
+}
+
+.card-holder-name {
+    font-weight: bold;
+    color: white;
+    font-size: 1rem;
+}
+
+/* 表單美化 */
+.form-control-custom {
+    border-radius: 10px;
+    border: 1px solid #ddd;
+    padding: 12px;
+    background-color: #f8f9fa;
+    transition: all 0.3s;
+}
+
+.form-control-custom:focus {
+    background-color: #fff;
+    box-shadow: 0 0 0 3px rgba(30, 60, 114, 0.1);
+    border-color: #1e3c72;
+}
+
+.balance-btn {
+    display: inline-block;
+    text-decoration: none;
+    color: #fff;
+    background: rgba(255, 255, 255, 0.2);
+    /* 半透明白 */
+    padding: 5px 15px;
+    border-radius: 20px;
+    /* 圓角膠囊狀 */
+    font-size: 0.9rem;
+    font-weight: bold;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    /* 淡淡的邊框 */
+    transition: all 0.3s ease;
+    backdrop-filter: blur(5px);
+    /* 毛玻璃特效 */
+}
+
+.balance-btn:hover {
+    background: rgba(255, 255, 255, 0.35);
+    /* 滑鼠移上去變亮 */
+    transform: translateY(-2px);
+    /* 微微浮起 */
+    color: #fff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.topup-card {
+        border: none; border-radius: 20px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1); overflow: hidden;
+    }
+    .topup-header {
+        background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); /* 綠色系代表金錢 */
+        color: white; padding: 25px; text-align: center;
+    }
+    
+    /* 快速金額按鈕 */
+    .amount-btn {
+        border: 2px solid #eee; background: #fff; color: #555;
+        border-radius: 12px; padding: 10px; font-weight: bold;
+        transition: all 0.2s; cursor: pointer; width: 100%;
+    }
+    .amount-btn:hover {
+        border-color: #38ef7d; color: #11998e; background: #f0fff4;
+    }
+    .amount-btn.active {
+        background: #11998e; color: white; border-color: #11998e;
+        box-shadow: 0 4px 10px rgba(17, 153, 142, 0.3);
+    }
+
+    /* 輸入框美化 */
+    .input-group-text { background: #f8f9fa; border-right: none; }
+    .form-control-amount { border-left: none; }
+    .form-control-amount:focus { box-shadow: none; border-color: #ced4da; }
