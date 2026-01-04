@@ -9,7 +9,6 @@ from google import genai
 app = Flask(__name__, template_folder='', static_folder='')
 app.secret_key = "A" 
 length = 4
-api_key = "AIzaSyATbL7jDB9k9p5UIiBqFNoMsvVt2_gsnus"
 
 # api_key = os.environ.get("GEMINI_API_KEY")
 AI_CONFIG = {
@@ -1001,4 +1000,5 @@ def DelTable():
     return redirect(url_for('home'))
 
 if __name__=='__main__':
+
     app.run(debug = True)
