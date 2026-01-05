@@ -990,10 +990,11 @@ def UpdAndDelUsers():
         }, {"id": id})
 
     if 'del' in request.form:
+        user_orders = db.sel(table.food, {'user_id': id})          
+        if user_orders:
+            return db.alert("您尚有未完成的訂單紀錄，無法刪除帳號！", "/?edit=2")
         if 'user' in session and session['user']['id'] == id:
-            user_orders = db.sel(table.food, {'user_id': id})          
-            if user_orders:
-                return db.alert("您尚有未完成的訂單紀錄，無法刪除帳號！", "/?edit=2")
+          
             db.delete(table.users, {"id": id})
             session.clear() 
             return db.alert("您的帳號已刪除，再見！", "/login")
@@ -1010,5 +1011,6 @@ def UpdAndDelUsers():
 if __name__=='__main__':
 
     app.run(debug = True)
+
 
 

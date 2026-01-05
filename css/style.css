@@ -69,10 +69,10 @@ body {
   justify-content: space-between;
   align-items: center;
   background: linear-gradient(135deg, var(--primary), #ff8e53);
-  padding: 30px 40px;
+  padding: 25px 30px;
   border-radius: 18px;
   color: white;
-  margin-bottom: 30px;
+  margin-bottom: 10px;
 }
 
 .hero-left h1 {
@@ -220,10 +220,215 @@ body {
   background: var(--primary);
   color: white;
   border: none;
-  padding: 0 30px;
+  padding: 0 15px;
   border-radius: 10px;
   font-weight: 600;
 }
+
+/* 確認訂單頁面 */
+.order-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 70vh;
+}
+
+/* 卡片 */
+.order-card {
+  border: none;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+  background: #fff;
+}
+
+/* Header */
+.order-card .card-header {
+  background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+  color: #fff;
+  font-weight: 700;
+  font-size: 1.2rem;
+  padding: 20px 25px;
+  border-bottom: none;
+}
+
+/* Body */
+.order-card .card-body {
+  padding: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+/* 使用者資訊 */
+.order-card .user-info h5 {
+  margin: 0;
+  font-weight: 600;
+  color: #374151;
+}
+
+/* 食物清單 */
+.food-list h5 {
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: #1f2937;
+}
+
+.food-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: #f9fafb;
+  margin-bottom: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+.food-item .price {
+  font-weight: 600;
+  color: #ff6b6b;
+}
+
+/* 總計 */
+.total-price {
+  font-size: 1.1rem;
+  font-weight: 700;
+  text-align: right;
+  margin-top: 8px;
+}
+
+/* 備註 */
+.order-card .form-floating textarea.form-control {
+  min-height: 80px;
+  border-radius: 12px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+}
+
+.order-card .form-floating textarea.form-control:focus {
+  border-color: #ff6b6b;
+  box-shadow: 0 0 0 3px rgba(255,107,107,0.15);
+  background: #fff;
+}
+
+/* 操作按鈕 */
+.order-actions .btn-primary {
+  background: linear-gradient(135deg, #ff6b6b, #ff8e53);
+  border: none;
+  border-radius: 14px;
+  font-weight: 700;
+  padding: 10px 0;
+  width: 48%;
+}
+
+.order-actions .btn-primary:hover {
+  opacity: 0.92;
+}
+
+.order-actions .btn-secondary {
+  border-radius: 14px;
+  padding: 10px 0;
+  width: 48%;
+}
+
+/* === 左側餐點選擇 === */
+.food-select-card {
+  border: none;
+  border-radius: 20px;
+  box-shadow: 0 16px 40px rgba(0,0,0,0.08);
+}
+
+.food-item-card {
+  border: none;
+  border-radius: 18px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+  transition: transform .2s ease, box-shadow .2s ease;
+}
+
+.food-item-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 14px 30px rgba(0,0,0,0.12);
+}
+
+.food-img-wrap img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 14px;
+}
+
+.food-card-body {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding-top: 10px;
+}
+
+.food-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.food-desc {
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.food-meta {
+  font-size: 0.85rem;
+}
+
+.food-meta .price {
+  color: #ff6b6b;
+  font-weight: 700;
+}
+
+.order-detail-card {
+  border-radius: 20px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* 操作區不要撐太高 */
+.order-detail-card .order-actions {
+  padding-top: 8px;
+  padding-bottom: 4px;
+}
+.order-detail-card .btn-success {
+  height: 54px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border-radius: 14px;
+}
+
+.order-detail-card .row.g-2 {
+  margin-top: 6px !important;
+}
+
+.order-detail-card .row.g-2 .btn {
+  height: 48px;
+  border-radius: 14px;
+  font-weight: 600;
+}
+.order-id {
+  font-size: 1.6rem;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+.order-meta p {
+  margin-bottom: 6px;
+  color: #555;
+}
+
+.order-meta strong {
+  color: #111;
+}
+
+
+
 
 /* 商品卡 */
 .food-grid {
