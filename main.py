@@ -3,7 +3,7 @@ from flask import Flask,render_template,request,redirect, url_for, session, Resp
 from datetime import datetime,date
 from werkzeug.utils import secure_filename
 import db,random, string,os,json
-import google as genai
+from google import genai
 
 
 app = Flask(__name__, template_folder='', static_folder='')
@@ -252,7 +252,6 @@ def home():
                                food=food,                # 訂單資料 (雖搜尋時用不到，但為了不報錯還是傳一下)
                                user=session.get('user'), # 使用 .get()，沒登入就是 None，不會報錯
                                upd_food_data=None,       # 搜尋時通常不會同時在編輯訂單
-                               upd_card_data=upd_card_data,
                                category_map=CATEGORY_MAP, 
                                request=request,
                                allmodel=allmodel,
@@ -1011,6 +1010,5 @@ def UpdAndDelUsers():
 if __name__=='__main__':
 
     app.run(debug = True)
-
 
 

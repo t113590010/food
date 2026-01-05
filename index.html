@@ -35,7 +35,7 @@
         </div>
     </div>
     <!-- 首頁 所有訂單 -->
-    {% if url=='1' or upd_food_data %}
+    {% if (url=='1' or upd_food_data) and not upd_card_data %}
         <div class="card">
             <div class="hero-bar">
                 <div class="hero-left">
@@ -576,6 +576,7 @@
             </form>
             {% endif %}
 
+
         {% if url=='7' %}
         <div class="container mt-5 mb-5">
             <div class="row justify-content-center">
@@ -814,5 +815,6 @@
 
 
 </body>
+
 
 </html>
