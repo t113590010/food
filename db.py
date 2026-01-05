@@ -20,6 +20,8 @@ conn = psycopg2.connect(
 
 cursor = conn.cursor()
 
+def get_AI_API_key():
+    return os.environ.get("AI_API")
 
 
 def ex(data: Dict[str, Any], separator: str = ' AND '):
@@ -163,5 +165,6 @@ def alert(content, where=""):
     </script>
 
     """
+
 
 

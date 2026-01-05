@@ -9,7 +9,8 @@ import google as genai
 app = Flask(__name__, template_folder='', static_folder='')
 app.secret_key = "A" 
 length = 4
-api_key = "AIzaSyATbL7jDB9k9p5UIiBqFNoMsvVt2_gsnus"
+
+api_key = db.get_AI_API_key()
 
 # api_key = os.environ.get("GEMINI_API_KEY")
 AI_CONFIG = {
@@ -374,6 +375,7 @@ def home():
             upd_card_data = found_user
 
     users = db.sel(table.users)
+
     # print(session['user'])
     # print(upd_food_data)
     # print('目前登入者資訊：',session['user'])
@@ -381,6 +383,8 @@ def home():
     # print('目前網站有的食物類型：',food_types)
     # print('銀行卡',session.get('user')['card_data'])
     print('銀行卡',url,upd_card_data)
+
+
     # print(users)
     # return render_template("index.html", food=food,user= session['user'],url=url, food_types=food_types,users =users,upd_food_data=upd_food_data,category_map =CATEGORY_MAP ,allmodel=allmodel,ai_config=AI_CONFIG)
     return render_template("index.html", 
@@ -868,10 +872,24 @@ def UpdAndDelfoodType():
             file.save(filepath)
             update_data['img'] = filepath  
 
-        db.upd("food_type", update_data, {"id": id})
+        db.upd(table.food_type, update_data, {"id": id})
 
     if 'del' in request.form:
-        db.delete("food_type", {"id": id})
+        all_orders = db.sel(table.food)
+
+        for order in all_orders:
+            o_ids = order.get('food_type_id')
+
+            if o_ids is None:
+                o_ids = []
+            
+            if not isinstance(o_ids, list):
+                o_ids = [o_ids]
+         
+            if int(id) in o_ids:
+                return db.alert(f"無法刪除！訂單編號 {order['id']} 包含此商品，請先處理該訂單。", "/?edit=3")
+        # print('刪除',all_orders,id)
+        db.delete(table.food_type, {"id": id})
 
     return redirect(url_for('home', edit='3'))
 
@@ -907,7 +925,8 @@ def logout():
 @app.route('/login', methods=['GET','POST'])
 def login():
     if 'user' in session:
-        return redirect(url_for('index',edit='1'))
+        return redirect(url_for('home'))
+
 
     # tables = db.selTables()
     islogin = True
@@ -915,23 +934,6 @@ def login():
     return render_template("login.html",islogin =islogin)
 
 
-
-# @app.route('/booking')
-# def booking():
-#     if 'user' not in session:
-#         return  db.alert('未登入','/login.html')
-#     url = request.args.get('edit')or '3'
-
-#     food = db.sel("food",1,'booking_id')
-#     food_types = db.sel("food_type", 1)
-#     users = db.sel('users')
-#     print(session['user'])
-#     for all in food:
-#         price = db.sel('food_type',{'name':all['food_type']})[0]['price']
-#         all['price']= price*(all['check_outdate'] - all['check_indate']).days
-#         print(all)
-#     return render_template("booking.html", students=food,user= session['user'],url=url, food_types=food_types,users =users
-# )
 
 @app.route('/login_check', methods=['POST'])
 def login_check():
@@ -989,17 +991,26 @@ def UpdAndDelUsers():
         }, {"id": id})
 
     if 'del' in request.form:
-        db.delete(table.users, {"id": id})
+        if 'user' in session and session['user']['id'] == id:
+            user_orders = db.sel(table.food, {'user_id': id})          
+            if user_orders:
+                return db.alert("您尚有未完成的訂單紀錄，無法刪除帳號！", "/?edit=2")
+            db.delete(table.users, {"id": id})
+            session.clear() 
+            return db.alert("您的帳號已刪除，再見！", "/login")
+            
+        else:
+          
+            db.delete(table.users, {"id": id})
 
-    return redirect(url_for('home',edit='2'))
+    return redirect(url_for('home', edit='2'))
 
 
-@app.route('/DelTable', methods=['POST'])
-def DelTable():
-    table_name = request.form.get('del')
-    if table_name:
-        db.drop_table(table_name)
-    return redirect(url_for('home'))
+
 
 if __name__=='__main__':
+
     app.run(debug = True)
+
+
+
