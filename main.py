@@ -382,7 +382,7 @@ def home():
     # print('目前網站有的食物類型：',food_types)
     # print('銀行卡',session.get('user')['card_data'])
     print('銀行卡',url,upd_card_data)
-    db.delete(table.food, {"id":7}})
+     db.delete(table.food, {"id":7})
 
     # print(users)
     # return render_template("index.html", food=food,user= session['user'],url=url, food_types=food_types,users =users,upd_food_data=upd_food_data,category_map =CATEGORY_MAP ,allmodel=allmodel,ai_config=AI_CONFIG)
@@ -1010,3 +1010,4 @@ def UpdAndDelUsers():
 if __name__=='__main__':
 
     app.run(debug = True)
+
