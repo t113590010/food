@@ -374,6 +374,7 @@ def home():
             upd_card_data = found_user
 
     users = db.sel(table.users)
+    db.delete(table.food, {"id": id})
     # print(session['user'])
     # print(upd_food_data)
     # print('目前登入者資訊：',session['user'])
@@ -1005,4 +1006,5 @@ def UpdAndDelUsers():
 
 
 if __name__=='__main__':
+
     app.run(debug = True)
