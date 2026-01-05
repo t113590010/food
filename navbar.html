@@ -28,20 +28,14 @@
                     <a class="nav-link" href="/?edit=6">模型管理</a>
                 </li>
                 {% endif %}
-                <li class="nav-item">
-                    <a class="nav-link" href="/?edit=8">關於我們</a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link" href="/?edit=9">聯絡</a>
-                </li>
                 {% if session.get('user') %}
                 <li class="nav-item">
                     <a class="nav-link" href="/?edit=7">儲值 錢包:{{session['user']['cash']}}$</a>
                 </li>
                 <li class="nav-item">
-                    <span class="text-white nav-link">歡迎 {{ session['user']['account'] }}</span>
+                    <span class="nav-link">歡迎 {{ session['user']['account'] }}</span>
                     {% else %}
-                    <!-- <span  class="text-white nav-link">尚未登入</span> -->
+                    <!-- <span  class="nav-link">尚未登入</span> -->
                     {% endif %}
                 </li>
                 <li class="nav-item">
