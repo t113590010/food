@@ -2,8 +2,15 @@
 from flask import Flask,render_template,request,redirect, url_for, session, Response,jsonify
 from datetime import datetime,date
 from werkzeug.utils import secure_filename
-import db,random, string,os,json
+import db,random, string,os,json,cloudinary,cloudinary.uploader
 from google import genai
+
+cloudinary.config(
+    cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME'),
+    api_key    = os.environ.get('CLOUDINARY_API_KEY'),
+    api_secret = os.environ.get('CLOUDINARY_API_SECRET'),
+    secure     = True
+)
 
 
 app = Flask(__name__, template_folder='', static_folder='')
@@ -25,7 +32,7 @@ class Table:
     food_rating='food_rating'
 table = Table()
 #圖片上傳過濾
-UPLOAD_FOLDER = 'uploads' 
+UPLOAD_FOLDER = 'uploads/' 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'gif'}
 os.makedirs(UPLOAD_FOLDER, exist_ok=True) 
 
@@ -374,7 +381,6 @@ def home():
             upd_card_data = found_user
 
     users = db.sel(table.users)
-
     # print(session['user'])
     # print(upd_food_data)
     # print('目前登入者資訊：',session['user'])
@@ -382,8 +388,6 @@ def home():
     # print('目前網站有的食物類型：',food_types)
     # print('銀行卡',session.get('user')['card_data'])
     print('銀行卡',url,upd_card_data)
-
-
     # print(users)
     # return render_template("index.html", food=food,user= session['user'],url=url, food_types=food_types,users =users,upd_food_data=upd_food_data,category_map =CATEGORY_MAP ,allmodel=allmodel,ai_config=AI_CONFIG)
     return render_template("index.html", 
@@ -821,25 +825,29 @@ def add_foodtype():
         return db.alert("未選擇圖片", "/?edit=3")
 
     if file and allowed_file(file.filename):
-        filename = secure_filename(file.filename)
-        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-        file.save(filepath)  
+        try:
+            upload_result = cloudinary.uploader.upload(file)
+            img_url = upload_result['secure_url'] 
 
-        target = db.sel("food_type", {'name': name})
-        if target:
-            return db.alert('已有此類型菜單', '/')
+            target = db.sel("food_type", {'name': name})
+            if target:
+                return db.alert('已有此類型菜單', '/')
 
-        db.ins("food_type", {
-            "name": name,
-            "price": int(price),
-            "count":0,
-            "content": content,
-            "img": filepath   ,
-            "rating_ids": [],
-            "type": category
-        })
+            
+            db.ins("food_type", {
+                "name": name,
+                "price": int(price),
+                "content": content,
+                "img": img_url, 
+                "rating_ids": [],
+                "type": category,
+                "count": 0
+            })
+            return redirect(url_for('home', edit='3'))
 
-        return redirect(url_for('home', edit='3'))
+        except Exception as e:
+            print(f"上傳失敗: {e}")
+            return db.alert("圖片上傳失敗，請檢查網路或 API Key", "/?edit=3")
 
     else:
         return db.alert("檔案格式不支援", "/?edit=3")
@@ -864,12 +872,19 @@ def UpdAndDelfoodType():
             "count":count
         }
 
+        # file = request.files.get('img')
+        # if file and file.filename != '' and allowed_file(file.filename):
+        #     filename = secure_filename(file.filename)
+        #     filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        #     file.save(filepath)
+        #     update_data['img'] = filepath  
         file = request.files.get('img')
         if file and file.filename != '' and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
-            update_data['img'] = filepath  
+            try:
+                upload_result = cloudinary.uploader.upload(file)
+                update_data['img'] = upload_result['secure_url']
+            except Exception as e:
+                print(f"圖片更新失敗: {e}")
 
         db.upd(table.food_type, update_data, {"id": id})
 
@@ -990,11 +1005,10 @@ def UpdAndDelUsers():
         }, {"id": id})
 
     if 'del' in request.form:
-        user_orders = db.sel(table.food, {'user_id': id})          
-        if user_orders:
-            return db.alert("您尚有未完成的訂單紀錄，無法刪除帳號！", "/?edit=2")
         if 'user' in session and session['user']['id'] == id:
-          
+            user_orders = db.sel(table.food, {'user_id': id})          
+            if user_orders:
+                return db.alert("您尚有未完成的訂單紀錄，無法刪除帳號！", "/?edit=2")
             db.delete(table.users, {"id": id})
             session.clear() 
             return db.alert("您的帳號已刪除，再見！", "/login")
@@ -1009,9 +1023,4 @@ def UpdAndDelUsers():
 
 
 if __name__=='__main__':
-
     app.run(debug = True)
-
-
-
-
