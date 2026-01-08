@@ -10,14 +10,14 @@
 
 <body>
     <script src="js/script.js"></script>
-    <!-- navbar -->
-    {% include 'navbar.html' %}
+    <div class="page-wrapper" <!-- navbar -->
+        {% include 'navbar.html' %}
 
-    <!-- body -->
-    <!-- AI -->
-    <div id="ai-chat-btn">
-        🤖
-    </div>
+        <!-- body -->
+        <!-- AI -->
+        <div id="ai-chat-btn">
+            🤖
+        </div>
 
     <div id="ai-chat-window">
         <div class="chat-header">
@@ -36,124 +36,184 @@
     </div>
     <!-- 首頁 所有訂單 -->
     {% if (url=='1' or upd_food_data) and not upd_card_data %}
-    <div class="card">
-
-        <div class="card-header">
-            <div class="row">
-                <div class="col">
-                    <h3>歡迎來到...網站 準備好享受美食了嘛!</h3>
-                </div>
-                <div class="col">
-                    <h4>總價錢: <span id="total">0</span>元</h4>
-                </div>
+ 
+        <div class="hero-bar">
+            <div class="hero-left">
+                <h1>準備好享受美食了嗎？</h1>
+                <p>從精選餐點中，找到今天最想吃的那一道 🍽️</p>
+            </div>
+            <div class="hero-right">
+                <span class="total-label">目前總金額</span>
+                <span class="total-price">NT$ <span id="total">0</span></span>
             </div>
         </div>
-
-
 
         <div class="card-body">
             {% if upd_food_data is not none %}
 
-            <form action="/upd_del_done_food" method="post">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-8">
-                            <div class="card p-3">
-                                <div class="row g-3">
+                <form action="/upd_del_done_food" method="post">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-8">
+                                <div class="card food-select-card p-3">
+                                    <div class="row g-3">
 
                                     {% for s in food_types %}
                                     <div class="col-3">
-                                        <div class="card p-2 h-100">
-                                            <div class="text-center">
-                                                <img src="{{ s.img }}" class="pre_img_sm" alt="">
+                                        <div class="card food-item-card h-100">
+
+                                        <div class="food-img-wrap text-center">
+                                            <img src="{{ s.img }}" class="pre_img_sm" alt="">
+                                        </div>
+
+                                        <div class="food-card-body">
+                                            <h4 class="food-title">{{ s.name }}</h4>
+                                            <p class="food-desc">{{ s.content }}</p>
+
+                                            <div class="food-meta mt-auto">
+                                            <div class="d-flex justify-content-between">
+                                                <span>存貨</span>
+                                                <strong>{{ s.count }}</strong>
                                             </div>
-                                            <h4>餐點:{{ s.name }}</h4>
-                                            <p>敘述:{{ s.content }}</p>
-                                            <div class="mt-auto">
-                                                <h5>剩餘存貨:{{s.count}}</h5>
-                                                <h5>單價: {{ s.price }}元</h5>
-                                                <label for="count_{{ s.id }}">數量</label>
-                                                <input type="number" min="0" max="{{s.count}}"
-                                                    class="form-control count" data-price="{{ s.price }}"
+                                            <div class="d-flex justify-content-between price">
+                                                <span>單價</span>
+                                                <strong>{{ s.price }} 元</strong>
+                                            </div>
+
+                                            <label class="mt-2">數量</label>
+                                            <input type="number"
+                                                    min="0"
+                                                    max="{{s.count}}"
+                                                    class="form-control count"
+                                                    data-price="{{ s.price }}"
                                                     name="count[{{ s.id }}]"
                                                     value="{% if upd_food_data and s.id in upd_food_data['food_type_id'] -%}{{ upd_food_data['food_counts'][upd_food_data['food_type_id'].index(s.id)] -}}{% else %}0{% endif %}"
                                                     required>
-
-
-
                                             </div>
+                                        </div>
+
                                         </div>
                                     </div>
                                     {% endfor %}
+
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col">
+                                <div class="card order-detail-card p-4">
+
+                                    <!-- 基本資訊 -->
+                                    <div class="order-info">
+                                    <h3 class="order-id">訂單 #{{ upd_food_data['id'] }}</h3>
+
+                                    <div class="order-meta">
+                                        <p><strong>客戶名稱：</strong>{{ upd_food_data['user_name'] }}</p>
+                                        <p><strong>Email：</strong>{{ upd_food_data['user_email'] }}</p>
+                                        <p><strong>備註：</strong>{{ "無" if upd_food_data['content'] == "" else upd_food_data['content'] }}</p>
+                                        <p><strong>訂單日期：</strong>{{ upd_food_data['date'] }}</p>
+                                    </div>
+                                    </div>
+
+                                    <hr>
+
+                                    <!-- 操作區 -->
+                                    <div class="order-actions">
+
+                                    {% if session['user']['level'] == 1 %}
+
+                                        {% if upd_food_data['done'] == 1 %}
+
+                                        {% if session['user']['id'] == 1 and upd_food_data['user_id'] %}
+                                        <button type="submit"
+                                                class="btn btn-success w-100 mb-2"
+                                                name="get"
+                                                value="{{ upd_food_data['id'] }}">
+                                            領取訂單
+                                        </button>
+                                        {% endif %}
+
+                                        <button type="submit"
+                                                class="btn btn-warning w-100"
+                                                name="Nodone"
+                                                value="{{ upd_food_data['id'] }}">
+                                            取消完成
+                                        </button>
+
+                                        {% else %}
+
+                                        <button type="submit"
+                                                class="btn btn-success w-100 mb-3"
+                                                name="done"
+                                                value="{{ upd_food_data['id'] }}">
+                                            完成訂單
+                                        </button>
+
+                                        <div class="row g-2">
+                                            <div class="col">
+                                            <button type="submit"
+                                                    class="btn btn-primary w-100"
+                                                    name="upd"
+                                                    value="{{ upd_food_data['id'] }}">
+                                                修改餐點
+                                            </button>
+                                            </div>
+                                            <div class="col">
+                                            <button type="submit"
+                                                    class="btn btn-danger w-100"
+                                                    name="del"
+                                                    value="{{ upd_food_data['id'] }}">
+                                                刪除訂單
+                                            </button>
+                                            </div>
+                                        </div>
+
+                                        {% endif %}
+
+                                    {% else %}
+
+                                        {% if upd_food_data['done'] == 1 %}
+
+                                        <button type="submit"
+                                                class="btn btn-success w-100"
+                                                name="get"
+                                                value="{{ upd_food_data['id'] }}">
+                                            領取訂單
+                                        </button>
+
+                                        {% else %}
+
+                                        <div class="order-status">
+                                            <h4>狀態：餐點準備中</h4>
+                                        </div>
+
+                                        <div class="row g-2 mt-3">
+                                            <div class="col">
+                                            <button type="submit"
+                                                    class="btn btn-primary w-100"
+                                                    name="upd"
+                                                    value="{{ upd_food_data['id'] }}">
+                                                修改餐點
+                                            </button>
+                                            </div>
+                                            <div class="col">
+                                            <button type="submit"
+                                                    class="btn btn-danger w-100"
+                                                    name="del"
+                                                    value="{{ upd_food_data['id'] }}">
+                                                刪除訂單
+                                            </button>
+                                            </div>
+                                        </div>
+
+                                        {% endif %}
+
+                                    {% endif %}
+
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
-                        <div class="col">
-                            <div class="card p-3">
-                                <h3>訂單ID：{{upd_food_data['id']}}</h3>
-                                <h4>客戶名稱：{{upd_food_data['user_name']}}</h4>
-                                <h4>email：{{upd_food_data['user_email']}}</h4>
-                                <h4>備註：{{ "無" if upd_food_data['content'] == "" else upd_food_data['content'] }}</h4>
-                                <h4>訂單日期：{{upd_food_data['date']}}</h4>
-                                {% if(session['user']['level']) ==1 %}
-
-                                {% if(upd_food_data['done']) ==1 %}
-                                {% if(session['user']['id']) ==1 and upd_food_data['user_id'] %}
-
-                                <button type="submit" class="btn btn-outline-success form-control mb-3" name="get"
-                                    value="{{upd_food_data['id']}}">領取</button>
-
-                                {% endif %}
-                                <button type="submit" class="btn btn-outline-success form-control" name="Nodone"
-                                    value="{{upd_food_data['id']}}">取消完成</button>
-
-                                {% else %}
-                                <button type="submit" class="btn btn-outline-success form-control" name="done"
-                                    value="{{upd_food_data['id']}}">完成訂單</button>
-                                     <div class="row text-center mt-3">
-                                    <div class="col">
-                                        <button type="submit" class="btn btn-outline-primary form-control" name="upd"
-                                            value="{{upd_food_data['id']}}">修改餐點</button>
-
-                                    </div>
-
-                                    <div class="col">
-                                        <button type="submit" class="btn btn-outline-danger form-control" name="del"
-                                            value="{{upd_food_data['id']}}">刪除訂單</button>
-
-                                    </div>
-
-                                </div>
-                                {% endif %}
-                                {% else %}
-                                {% if(upd_food_data['done']) ==1 %}
-                                <button type="submit" class="btn btn-outline-success form-control" name="get"
-                                    value="{{upd_food_data['id']}}">領取</button>
-
-                                {% else %}
-                                <h4>狀態：餐點準備中</h4>
-                                 <div class="row text-center mt-3">
-                                    <div class="col">
-                                        <button type="submit" class="btn btn-outline-primary form-control" name="upd"
-                                            value="{{upd_food_data['id']}}">修改餐點</button>
-
-                                    </div>
-
-                                    <div class="col">
-                                        <button type="submit" class="btn btn-outline-danger form-control" name="del"
-                                            value="{{upd_food_data['id']}}">刪除訂單</button>
-
-                                    </div>
-
-                                </div>
-                                {% endif %}
-                                {% endif %}
-                               
-
-                            </div>
-                        </div>
-                    </div>
 
                 </div>
             </form>
@@ -161,114 +221,117 @@
             {% else %}
             <div class="main-container">
 
-                <aside class="filter-sidebar">
-                    <h3>🍴 篩選條件</h3>
+                    <aside class="filter-sidebar">
+                        <h3>🍴 篩選條件</h3>
 
-                    <form action="/" method="GET">
+                        <form action="/" method="GET">
 
-                        <input type="hidden" name="keyword" value="{{ request.args.get('keyword', '') }}">
+                            <input type="hidden" name="keyword" value="{{ request.args.get('keyword', '') }}">
 
-                        <div class="filter-group">
-                            <h4>餐點類別</h4>
+                            <div class="filter-group">
+                                <h4>餐點類別</h4>
 
-                            {% for code, name in category_map.items() %}
+                                {% for code, name in category_map.items() %}
 
-                            <label class="checkbox-item">
-                                <input type="checkbox" name="category" value="{{ code }}" {% if code in
-                                    request.args.getlist('category') %} checked {% endif %}>
+                                <label class="checkbox-item">
+                                    <input type="checkbox" name="category" value="{{ code }}" {% if code in
+                                        request.args.getlist('category') %} checked {% endif %}>
 
-                                {{ name }}
-                            </label>
+                                    {{ name }}
+                                </label>
 
-                            {% endfor %}
-                        </div>
-
-                        <div class="filter-group">
-                            <h4>價格範圍</h4>
-                            <div class="price-inputs">
-                                <input type="number" name="min_price" placeholder="最低"
-                                    value="{{ request.args.get('min_price', '') }}">
-                                <span> - </span>
-                                <input type="number" name="max_price" placeholder="最高"
-                                    value="{{ request.args.get('max_price', '') }}">
+                                {% endfor %}
                             </div>
-                        </div>
 
-                        <div class="filter-group">
-                            <h4>排序</h4>
-                            <label class="radio-item">
-                                <input type="radio" name="sort" value="newest" checked> 最新上架
-                            </label>
-                            <label class="radio-item">
-                                <input type="radio" name="sort" value="price_asc"> 價格：低到高
-                            </label>
-                            <label class="radio-item">
-                                <input type="radio" name="sort" value="price_desc"> 價格：高到低
-                            </label>
-                        </div>
-
-                        <button type="submit" class="filter-btn">套用篩選</button>
-                        <a href="/" class="reset-btn">清除重置</a>
-                    </form>
-                </aside>
-
-                <main class="content-area">
-
-                    <div class="top-search-bar">
-                        <form action="/" method="GET" class="search-form">
-                            <input type="text" name="keyword" placeholder="搜尋想吃的美食..."
-                                value="{{ request.args.get('keyword', '') }}">
-                            <button type="submit">🔍 搜尋</button>
-                        </form>
-                    </div>
-                    <form action="/tmp_food" method="post">
-
-                        <div class="food-grid">
-                            {% if food_types %}
-                            {% for s in food_types %}
-
-
-                            <div class="food-card">
-
-                                <div class="text-center">
-                                    <img src="{{ s.img }}" class="pre_img card-img" alt="">
+                            <div class="filter-group">
+                                <h4>價格範圍</h4>
+                                <div class="price-inputs">
+                                    <input type="number" name="min_price" placeholder="最低"
+                                        value="{{ request.args.get('min_price', '') }}">
+                                    <span> - </span>
+                                    <input type="number" name="max_price" placeholder="最高"
+                                        value="{{ request.args.get('max_price', '') }}">
                                 </div>
-                                <div class="card-info">
+                            </div>
 
-                                    <h4>餐點:{{ s.name }}</h4>
-                                    <h5>類型:{{ category_map[s.type] }}</h5>
-                                    <p>敘述:{{ s.content }}</p>
-                                    <div class="mt-auto">
-                                        <h5>剩餘存貨:{{s.count}}</h5>
-                                        <h5>單價: {{ s.price }}</h5>
-                                        <label for="count_{{ s.id }}">數量</label>
-                                        <input type="number" min="0" max="{{s.count}}" class="form-control count"
-                                            data-price="{{ s.price }}" name="count[{{ s.id }}]"
-                                            value="{% if session.get('tmp_order') and s.id in session['tmp_order']['food_type_ids'] %}{{ session['tmp_order']['counts'][session['tmp_order']['food_type_ids'].index(s.id)] }}{% else %}0{% endif %}">
+                            <div class="filter-group">
+                                <h4>排序</h4>
+                                <label class="radio-item">
+                                    <input type="radio" name="sort" value="newest" checked> 最新上架
+                                </label>
+                                <label class="radio-item">
+                                    <input type="radio" name="sort" value="price_asc"> 價格：低到高
+                                </label>
+                                <label class="radio-item">
+                                    <input type="radio" name="sort" value="price_desc"> 價格：高到低
+                                </label>
+                            </div>
 
+                            <button type="submit" class="filter-btn">套用篩選</button>
+                            <a href="/" class="reset-btn">清除重置</a>
+                        </form>
+                    </aside>
+
+                    <main class="content-area">
+
+                        <div class="top-search-bar">
+                            <form action="/" method="GET" class="search-form">
+                                <input type="text" name="keyword" placeholder="搜尋想吃的美食..."
+                                    value="{{ request.args.get('keyword', '') }}">
+                                <button type="submit">🔍 搜尋</button>
+                            </form>
+                        </div>
+
+                        <form action="/tmp_food" method="post">
+
+                            <div class="food-grid">
+                                {% if food_types %}
+                                {% for s in food_types %}
+
+
+                                <div class="food-card">
+
+                                    <div class="text-center">
+                                        <img src="{{ s.img }}" class="pre_img card-img" alt="">
+                                    </div>
+                                    <div class="card-info">
+
+                                        <h4>餐點:{{ s.name }}</h4>
+                                        <h5>類型:{{ category_map[s.type] }}</h5>
+                                        <p>敘述:{{ s.content }}</p>
+                                        <div class="mt-auto">
+                                            <h5>剩餘存貨:{{s.count}}</h5>
+                                            <h5>單價: {{ s.price }}</h5>
+                                            <label for="count_{{ s.id }}">數量</label>
+                                            <input type="number" min="0" max="{{s.count}}" class="form-control count"
+                                                data-price="{{ s.price }}" name="count[{{ s.id }}]"
+                                                value="{% if session.get('tmp_order') and s.id in session['tmp_order']['food_type_ids'] %}{{ session['tmp_order']['counts'][session['tmp_order']['food_type_ids'].index(s.id)] }}{% else %}0{% endif %}">
+
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            {% endfor %}
-                            {% else %}
-                            <div class="no-result">
-                                <p>沒有找到符合條件的美食 😭</p>
-                            </div>
-                            {% endif %}
-                        </div>
+                                {% endfor %}
+                                {% else %}
+                                <div class="empty-state">
+                                    <h3>找不到符合條件的餐點</h3>
+                                    <p>試試調整篩選條件，或直接看看全部美食吧 🍜</p>
+                                </div>
 
-                        <div class="mt-3 text-center">
-                            <button type="submit" class="btn btn-outline-primary">加入餐點</button>
-                        </div>
-                    </form>
-                </main>
+                                {% endif %}
+                            </div>
+
+                            <div class="mt-3 text-center">
+                                <button type="submit" class="btn btn-outline-primary" id="add_food">加入餐點</button>
+                            </div>
+                        </form>
+                    </main>
+                </div>
+
+                {% endif %}
+
+
             </div>
-
-            {% endif %}
-
-
         </div>
-    </div>
 
     {% endif %}
     <!-- 會員管理 -->
@@ -328,249 +391,260 @@
             </table>
 
 
-        </div>
-        {% endif %}
-        <!-- 食物類型管理 -->
-        {% if 'user' in session and session['user']['level']==1 and url=='3' %}
+            </div>
+            {% endif %}
+            <!-- 食物類型管理 -->
+            {% if 'user' in session and session['user']['level']==1 and url=='3' %}
 
-        <div class="card">
-            <div class="card-body">
-                <div class="row">
-                    <div class="col-5">
+            <div class="card">
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-5">
 
 
-                        <h2>新增菜單類型</h2>
-                        <form action="/add_foodtype" method="post" enctype="multipart/form-data">
-                            <div class="row">
+                            <h2>新增菜單類型</h2>
+                            <form action="/add_foodtype" method="post" enctype="multipart/form-data">
                                 <div class="row">
-                                    <div class="col">
-                                        <h5>預覽圖片</h5>
-                                        <img src="" class="pre_img" alt="">
+                                    <div class="row">
+                                        <div class="col text-center">
+                                            <h5>預覽圖片</h5>
+                                            <img src="" class="pre_img" alt="">
+                                            <label for="img" class="btn form-control btn-outline-secondary">上傳圖片</label>
+                                            <input type="file" name="img" id="img" hidden>
+                                        </div>
                                     </div>
-                                    <div class="col">
 
-                                        <label for="img" class="btn form-control btn-outline-secondary">上傳圖片</label>
-                                        <input type="file" name="img" id="img" hidden>
-                                    </div>
+
+                                    <label for="">菜單類型名稱</label>
+                                    <input type="text" value="" class="form-control" name="name" required
+                                        placeholder="輸入名稱">
+                                    <label for="">食物類型</label>
+                                    <select name="category" class="form-select">
+                                        {% for code, name in category_map.items() %}
+                                        <option value="{{ code }}" selected>
+                                            {{ name }} </option>
+                                        {% endfor %}
+
+                                    </select>
+                                    <label for="">價格</label>
+                                    <input type="number" min="1" value="" class="form-control" name="price" required
+                                        placeholder="輸入價格">
+                                    <label for="">敘述</label>
+                                    <textarea name="content" class="form-control" id="" required
+                                        placeholder="輸入敘述"></textarea>
+
+
+
                                 </div>
+                                <div class="mt-3 text-center">
+                                    <button type="submit" class="btn btn-outline-primary col-3">新增</button>
+                                </div>
+                            </form>
 
-                                <label for="">菜單類型名稱</label>
-                                <input type="text" value="" class="form-control" name="name" required
-                                    placeholder="輸入名稱">
-                                <label for="">食物類型</label>
-                                <select name="category" class="form-select">
-                                    {% for code, name in category_map.items() %}
-                                    <option value="{{ code }}" selected>
-                                        {{ name }} </option>
+                        </div>
+                        <div class="col">
+                            <h2>已有菜單類型</h2>
+                            <table border="1" cellpadding="8" class="table table-striped">
+                                <thead>
+                                    <tr>
+                                        <th class="col-2">圖片</th>
+                                        <th>菜單類型名稱</th>
+                                        <th class="col-2">類型</th>
+                                        <th class="col-2">價錢</th>
+                                        <th class="col-2">存貨</th>
+                                        <th>敘述</th>
+                                        <!-- <th>操作</th> -->
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for s in food_types %}
+                                    <form action="/UpdAndDelFoodType" method="post" enctype="multipart/form-data">
+                                        <tr>
+                                            <td><img src="{{s.img}}" class="pre_img_sm" alt="" id="pre_img_sm_{{s.id}}">
+                                            </td>
+                                            <td><input type="text" class="form-control" value="{{ s.name }}"
+                                                    name="name">
+                                            </td>
+                                            <td>
+                                                <select name="category" class="form-select">
+
+                                                    {% for code, name in category_map.items() %}
+
+                                                    <option value="{{ code }}" {% if s.type==code %} selected {% endif
+                                                        %}>
+
+                                                        {{ name }} </option>
+
+                                                    {% endfor %}
+
+                                                </select>
+                                            </td>
+                                            <td><input type="number" min="1" class="form-control" value="{{ s.price }}"
+                                                    name="price"></td>
+                                            <td><input type="number" min="0" class="form-control" value="{{ s.count }}"
+                                                    name="count"></td>
+                                            <td> <textarea class="form-control" name="content"
+                                                    id="">{{ s.content }}</textarea>
+                                            </td>
+                                        </tr>
+                                        <tr>
+
+                                            <td colspan="5">
+                                                <div class="d-flex align-items-center gap-2">
+
+                                                    <label for="img_sm_{{s.id}}"
+                                                        class="btn form-control btn-outline-secondary">上傳圖片</label>
+                                                    <input type="file" name="img" id="img_sm_{{s.id}}" class="img_btn"
+                                                        hidden>
+                                                    <button class="btn btn-outline-warning col-2" name="upd"
+                                                        value="{{s.id}}">修改</button>
+                                                    <button class="btn btn-outline-danger col-2" name="del"
+                                                        value="{{s.id}}" onclick="return confirm('確定刪除?')">刪除</button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    </form>
                                     {% endfor %}
-
-                                </select>
-                                <label for="">價格</label>
-                                <input type="number" min="1" value="" class="form-control" name="price" required
-                                    placeholder="輸入價格">
-                                <label for="">敘述</label>
-                                <textarea name="content" class="form-control" id="" required
-                                    placeholder="輸入敘述"></textarea>
+                                </tbody>
+                            </table>
 
 
-
-                            </div>
-                            <div class="mt-3 text-center">
-                                <button type="submit" class="btn btn-outline-primary col-3">新增</button>
-                            </div>
-                        </form>
-
+                        </div>
                     </div>
-                    <div class="col">
-                        <h2>已有菜單類型</h2>
-                        <table border="1" cellpadding="8" class="table table-striped">
-                            <thead>
-                                <tr>
-                                    <th class="col-2">圖片</th>
-                                    <th>菜單類型名稱</th>
-                                    <th class="col-2">類型</th>
-                                    <th class="col-2">價錢</th>
-                                    <th class="col-2">存貨</th>
-                                    <th>敘述</th>
-                                    <!-- <th>操作</th> -->
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for s in food_types %}
-                                <form action="/UpdAndDelFoodType" method="post" enctype="multipart/form-data">
-                                    <tr>
-                                        <td><img src="{{s.img}}" class="pre_img_sm" alt="" id="pre_img_sm_{{s.id}}">
-                                        </td>
-                                        <td><input type="text" class="form-control" value="{{ s.name }}" name="name">
-                                        </td>
-                                        <td>
-                                            <select name="category" class="form-select">
-
-                                                {% for code, name in category_map.items() %}
-
-                                                <option value="{{ code }}" {% if s.type==code %} selected {% endif %}>
-
-                                                    {{ name }} </option>
-
-                                                {% endfor %}
-
-                                            </select>
-                                        </td>
-                                        <td><input type="number" min="1" class="form-control" value="{{ s.price }}"
-                                                name="price"></td>
-                                        <td><input type="number" min="0" class="form-control" value="{{ s.count }}"
-                                                name="count"></td>
-                                        <td> <textarea class="form-control" name="content"
-                                                id="">{{ s.content }}</textarea>
-                                        </td>
-                                    </tr>
-                                    <tr>
-
-                                        <td colspan="5">
-                                            <div class="d-flex align-items-center gap-2">
-
-                                                <label for="img_sm_{{s.id}}"
-                                                    class="btn form-control btn-outline-secondary">上傳圖片</label>
-                                                <input type="file" name="img" id="img_sm_{{s.id}}" class="img_btn"
-                                                    hidden>
-                                                <button class="btn btn-outline-warning col-2" name="upd"
-                                                    value="{{s.id}}">修改</button>
-                                                <button class="btn btn-outline-danger col-2" name="del" value="{{s.id}}"
-                                                    onclick="return confirm('確定刪除?')">刪除</button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                </form>
-                                {% endfor %}
-                            </tbody>
-                        </table>
 
 
-                    </div>
                 </div>
-
 
             </div>
-
-        </div>
-        {% endif %}
-        {% if url=='4' %}
-        <div class="cent row_cent mt-5 ">
-            <div class="card col-5">
-                <div class="card-header">
+            {% endif %}
+            {% if url=='4' %}
+            <div class="order-wrapper cent row_cent mt-5">
+                <div class="card order-card col-5">
+                    <div class="card-header">
                     <h3>確認訂單</h3>
-                </div>
-                <div class="card-body">
+                    </div>
+                    <div class="card-body">
                     <form action="/add_food" method="post">
-                        <h5>name：{{session['user']['name']}}</h5>
-                        <h5>email：{{session['user']['email']}}</h5>
+
+                        <div class="user-info">
+                        <h5>姓名：{{ session['user']['name'] }}</h5>
+                        <h5>Email：{{ session['user']['email'] }}</h5>
+                        </div>
+
+                        <div class="food-list">
                         <h5>食物清單</h5>
                         {% for i in range(session['tmp_order']['food_type_ids']|length) %}
-                        <span>
-                            {{ session['tmp_order']['food_type_names'][i] }}x{{ session['tmp_order']['counts'][i] }} =
-                            {{session['tmp_order']['counts'][i]*session['tmp_order']['prices'][i]}}
-                        </span>
-                        <br>
+                            <div class="food-item">
+                            <span>{{ session['tmp_order']['food_type_names'][i] }} x {{ session['tmp_order']['counts'][i] }}</span>
+                            <span class="price">{{ session['tmp_order']['counts'][i]*session['tmp_order']['prices'][i] }} 元</span>
+                            </div>
                         {% endfor %}
-                        <h5>總計{{session['tmp_order']['total']}}元</h5>
-                        <textarea id="" class="form-control" name="content" placeholder="備註 可不填"></textarea>
-
-
-                        <div class="row text-center mt-3">
-                            <div class="col">
-                                <button class="btn btn-outline-primary" name="submit">確定送出</button>
-
-                            </div>
-                            <div class="col">
-                                <a href="/?edit=1" class="btn btn-outline-secondary">回上一步</a>
-
-                            </div>
                         </div>
+
+                        <h5 class="total-price">總計：{{ session['tmp_order']['total'] }} 元</h5>
+
+                        <div class="form-floating">
+                        <textarea class="form-control" name="content" placeholder="備註 可不填"></textarea>
+                        <label>備註</label>
+                        </div>
+
+                        <div class="order-actions mt-3 d-flex justify-content-between">
+                        <button class="btn btn-primary">確定送出</button>
+                        <a href="/?edit=1" class="btn btn-secondary">回上一步</a>
+                        </div>
+
                     </form>
-                </div>
-            </div>
-        </div>
-        {% endif %}
-        <!-- 訂單管理 -->
-        {% if url=='5' %}
-        <table border="1" cellpadding="8" class="table">
-            <thead>
-                <tr>
-                    <th>訂單id</th>
-                    <th>總價格</th>
-                    <th class="col-3">備註</th>
-                    <th>使用者名稱</th>
-                    <th>email</th>
-                    <th>狀態</th>
-                    <th>操作</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for s in food %}
-
-                <tr>
-                    <form action="/UpdAndDelFoods" method="post">
-                        <td>
-                            <h4>{{s.id}}</h4>
-                        </td>
-                        <td>
-                            <h4>{{s.total}}</h4>
-                        </td>
-                        <td>
-                            <h4>
-                                {% if s.content == "" %}
-                                無
-                                {% else %}
-                                {{ s.content }}
-                                {% endif %}
-                            </h4>
-                        </td>
-                        <td>
-                            <h4>{{s.user_name}}</h4>
-                        </td>
-                        <td>
-                            <h4>{{s.user_email}}</h4>
-                        </td>
-                        <td>{{ '已完成' if s.done == 1 else '準備中' }}</td>
-
-                        <td>
-                            <button class="btn btn-outline-warning" name="upd" value="{{s.id}}">詳細資料</button>
-                            <button class="btn btn-outline-danger" name="del" value="{{s.id}}"
-                                onclick="return confirm('確定刪除?')">刪除</button>
-                        </td>
-                    </form>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-
-        {% endif %}
-
-        {% if 'user' in session and session['user']['level']==1 and url=='6' %}
-        <form action="/set_model" method="post">
-            <div class="container">
-
-                <h3>當前模型:</h3>
-                <div class="row">
-                    <div class="col">
-                        <select class="form-select" name="model" id="modelSelect" onchange="this.form.submit()">
-                            {% for m in allmodel %}
-                            <option value="{{ m.id }}" {% if ai_config and ai_config['current_model']==m.id %}selected{%
-                                endif %}>
-                                {{ m.name }}
-                            </option>
-                            {% endfor %}
-                        </select>
-
-                    </div>
-                    <div class="col-auto">
-                        <button type="submit" class="btn btn-outline-primary" name="upd_ai">切換</button>
-
                     </div>
                 </div>
             </div>
-        </form>
-        {% endif %}
+
+            {% endif %}
+            <!-- 訂單管理 -->
+            {% if url=='5' %}
+            <table border="1" cellpadding="8" class="table">
+                <thead>
+                    <tr>
+                        <th>訂單id</th>
+                        <th>總價格</th>
+                        <th class="col-3">備註</th>
+                        <th>使用者名稱</th>
+                        <th>email</th>
+                        <th>狀態</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for s in food %}
+
+                    <tr>
+                        <form action="/UpdAndDelFoods" method="post">
+                            <td>
+                                <h4>{{s.id}}</h4>
+                            </td>
+                            <td>
+                                <h4>{{s.total}}</h4>
+                            </td>
+                            <td>
+                                <h4>
+                                    {% if s.content == "" %}
+                                    無
+                                    {% else %}
+                                    {{ s.content }}
+                                    {% endif %}
+                                </h4>
+                            </td>
+                            <td>
+                                <h4>{{s.user_name}}</h4>
+                            </td>
+                            <td>
+                                <h4>{{s.user_email}}</h4>
+                            </td>
+                            <td>
+                                <span class="status {{ 'done' if s.done == 1 else 'pending' }}">
+                                    {{ '已完成' if s.done == 1 else '準備中' }}
+                                </span>
+                            </td>
+
+
+                            <td>
+                                <button class="btn btn-outline-warning" name="upd" value="{{s.id}}">詳細資料</button>
+                                <button class="btn btn-outline-danger" name="del" value="{{s.id}}"
+                                    onclick="return confirm('確定刪除?')">刪除</button>
+                            </td>
+                        </form>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+
+            {% endif %}
+
+            {% if 'user' in session and session['user']['level']==1 and url=='6' %}
+            <form action="/set_model" method="post">
+                <div class="container">
+
+                    <h3>當前模型:</h3>
+                    <div class="row">
+                        <div class="col">
+                            <select class="form-select" name="model" id="modelSelect" onchange="this.form.submit()">
+                                {% for m in allmodel %}
+                                <option value="{{ m.id }}" {% if ai_config and ai_config['current_model']==m.id
+                                    %}selected{% endif %}>
+                                    {{ m.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+
+                        </div>
+                        <div class="col-auto">
+                            <button type="submit" class="btn btn-outline-primary" name="upd_ai">切換</button>
+
+                        </div>
+                    </div>
+                </div>
+            </form>
+            {% endif %}
+
 
         {% if url=='7' %}
         <div class="container mt-5 mb-5">
@@ -810,5 +884,6 @@
 
 
 </body>
+
 
 </html>

@@ -1,110 +1,112 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-Hant">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
-    <link rel="stylesheet" href="css/style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login</title>
+  <link rel="stylesheet" href="css/style.css" />
 </head>
 
 <body class="login">
-    <script src="js/script.js"></script>
 
-    <!-- navbar -->
-    {% include 'navbar.html' %}
+  {% include 'navbar.html' %}
 
-    <div class="cent row_cent login_height">
+  <main class="login-wrapper">
+    <section class="login-card">
 
-        <div class="card w-25">
-            <div class="card-header">
-                <!-- 登入區塊 -->
-                <div class="row" id="loginHeader">
-                    <div class="col">
-                        <h3>登入</h3>
-                    </div>
-                    <div class="col">
-                        <button class="btn btn-outline-success" id="goRegister">註冊</button>
-                    </div>
-                </div>
-
-                <!-- 註冊區塊 -->
-                <div class="row d-none" id="registerHeader">
-                    <div class="col">
-                        <h3>註冊</h3>
-                    </div>
-                    <div class="col">
-                        <button class="btn btn-outline-primary" id="goLogin">登入</button>
-                    </div>
-                </div>
-            </div>
-            <div class="card-body">
-                <div id="contentLogin">
-                    <form action="/login_check" method="post">
-                        <div class="form-floating">
-                            <input type="text" class="form-control" id="acc" name="acc" placeholder="" required>
-                            <label for="acc">輸入帳號</label>
-                        </div>
-                        <div class="form-floating mt-3">
-                            <input type="password" class="form-control" id="ps" name="ps" placeholder="" required>
-                            <label for="ps">輸入密碼</label>
-                        </div>
-                        <div class="row mt-3">
-                            <div class="col-6 ">
-                                <img id="captcha_img" src="{{ url_for('captcha_svg') }}"
-                                    data-url="{{ url_for('captcha_svg') }}" alt="驗證碼">
-                            </div>
-                            <div class="col mt-1">
-                                <button type="button" class="btn btn-outline-warning" id="refreshCaptcha">刷新驗證碼</button>
-                            </div>
-                        </div>
-                        <div class="form-floating mt-3">
-                            <input type="text" class="form-control" id="captcha" name="captcha" placeholder="" required>
-                            <label for="captcha">輸入驗證碼</label>
-                        </div>
-                        <div class="row text-center mt-3">
-                            <div class="col">
-                                <button type="submit" class="btn btn-primary">登入</button>
-                            </div>
-                            <div class="col">
-                                <button type="button" class="btn btn-secondary" id="clear">清除</button>
-                            </div>
-                        </div>
-
-                    </form>
-                </div>
-                <div id="contentRegister" class="d-none">
-                    <form action="/newAcc" method="post">
-                        <div class="form-floating">
-                            <input type="text" class="form-control" id="acc" name="acc" placeholder="" required>
-                            <label for="acc">輸入帳號</label>
-                        </div>
-                        <div class="form-floating mt-3">
-                            <input type="password" class="form-control" id="ps" name="ps" placeholder="" required>
-                            <label for="ps">輸入密碼</label>
-                        </div>
-                        <div class="form-floating mt-3">
-                            <input type="text" class="form-control" id="name" name="name" placeholder="" required>
-                            <label for="text">輸入名字</label>
-                        </div>
-                        <div class="form-floating mt-3">
-                            <input type="email" class="form-control" id="email" name="email" placeholder="" required>
-                            <label for="email">輸入email</label>
-                        </div>
-                        <div class="row text-center mt-3">
-                            <div class="col">
-                                <button type="submit" class="btn btn-primary">註冊</button>
-                            </div>
-                            <div class="col">
-                                <button type="button" class="btn btn-secondary" id="clear">清除</button>
-                            </div>
-                        </div>
-                    </form>
-
-                </div>
-            </div>
+      <!-- Header -->
+      <header class="login-header">
+        <!-- 登入 -->
+        <div class="login-header-row" id="loginHeader">
+          <h3>登入</h3>
+          <button class="btn-switch" id="goRegister">註冊</button>
         </div>
-    </div>
-</body>
 
+        <!-- 註冊 -->
+        <div class="login-header-row d-none" id="registerHeader">
+          <h3>註冊</h3>
+          <button class="btn-switch" id="goLogin">登入</button>
+        </div>
+      </header>
+
+      <!-- Body -->
+      <div class="login-body">
+
+        <!-- Login -->
+        <div id="contentLogin">
+          <form action="/login_check" method="post" class="login-form">
+
+            <div class="form-floating">
+              <input type="text" class="form-control" id="acc" name="acc" required />
+              <label for="acc">帳號</label>
+            </div>
+
+            <div class="form-floating">
+              <input type="password" class="form-control" id="ps" name="ps" required />
+              <label for="ps">密碼</label>
+            </div>
+
+            <!-- Captcha -->
+            <div class="captcha-row">
+              <img
+                id="captcha_img"
+                src="{{ url_for('captcha_svg') }}"
+                data-url="{{ url_for('captcha_svg') }}"
+                alt="captcha"
+              />
+              <button type="button" class="btn-captcha" id="refreshCaptcha">
+                重新產生
+              </button>
+            </div>
+
+            <div class="form-floating">
+              <input type="text" class="form-control" id="captcha" name="captcha" required />
+              <label for="captcha">驗證碼</label>
+            </div>
+
+            <div class="action-row">
+              <button type="submit" class="btn-primary">登入</button>
+              <button type="button" class="btn-secondary" id="clear">清除</button>
+            </div>
+          </form>
+        </div>
+
+        <!-- Register -->
+        <div id="contentRegister" class="d-none">
+          <form action="/newAcc" method="post" class="login-form">
+
+            <div class="form-floating">
+              <input type="text" class="form-control" name="acc" required />
+              <label>帳號</label>
+            </div>
+
+            <div class="form-floating">
+              <input type="password" class="form-control" name="ps" required />
+              <label>密碼</label>
+            </div>
+
+            <div class="form-floating">
+              <input type="text" class="form-control" name="name" required />
+              <label>名字</label>
+            </div>
+
+            <div class="form-floating">
+              <input type="email" class="form-control" name="email" required />
+              <label>Email</label>
+            </div>
+
+            <div class="action-row">
+              <button type="submit" class="btn-primary">註冊</button>
+              <button type="button" class="btn-secondary" id="clear">清除</button>
+            </div>
+          </form>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <script src="js/script.js"></script>
+</body>
 </html>
